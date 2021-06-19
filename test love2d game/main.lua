@@ -165,7 +165,7 @@ love.graphics.setColor(1,0,0)
   love.graphics.draw(love.graphics.newImage("sprite/textMeta.png"),c.x,c.y,0,c.size)
   end
    --love.graphics.print(tostring(4),c.x,c.y)
-  love.graphics.print(tostring(to),300,300)
+  --love.graphics.print(tostring(to),300,300)
   --string.pack("j",3)
   local hour = os.date("*t",os.time()).hour
   if(tonumber(hour) == 0)then
