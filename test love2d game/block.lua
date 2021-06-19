@@ -14,6 +14,10 @@ local colorblocks = {
     color = {5,1}
   }
 }
+local dirblocks = {
+  "up"
+}
+local dir
 function findproperties()
             winning = true
   for i,c in ipairs(Objects) do
@@ -125,8 +129,13 @@ end
      for o,here in ipairs(onhere) do
       table.insert(dels,here)
      end
-
    end
+ end
+ for i,direct in ipairs(dirblocks)do
+  local isdir = objectswithproperty(direct)
+  for j,c in ipairs(isdir)do
+   c.dir = direct
+  end
  end
  dels = handledels(dels)
  local isopen = objectswithproperty("open")

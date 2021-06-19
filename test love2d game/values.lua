@@ -322,5 +322,11 @@ objectValues = {
     name = "icy",
     sprite = "icy",
     color = {6,5}
-  }
+  },
+  {
+    name = "text_up",
+    sprite = "text_up",
+    color = {6,5},
+    type = 0
+  },
 }
