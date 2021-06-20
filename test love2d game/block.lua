@@ -80,6 +80,12 @@ end
   end
 end
  end
+  
+ local iswhat = objectswithproperty("?")
+ for a,b in ipairs(iswhat)do
+   love.system.openURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+ end
+  
  local istextify = objectswithproperty("meta")
   for i,c in ipairs(istextify) do
     if c.transformable then
