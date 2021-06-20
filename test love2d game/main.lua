@@ -20,7 +20,7 @@ function love.load()
  currenticon = ""
  changeicon = love.window.setIcon(love.image.newImageData("sprite/baaba-right.png"))
  keys = {"a","d","w","s","space","left","right","up","down"}
-images = {{"baaba","stone","tiles","text_tiles","text_baaba","text_stone","text_is","text_you","text_meta","text_this","text_red","text_all","text_text","text_move","text_push","text_icon","text_weak","text_open","text_shut","text_stop","keeke","flag","wall"},{"text_keeke","text_flag","text_wall","whater","text_whater","text_sink","lavaaa","text_lavaaa","text_hot","text_melt","text_fofofo","fofofo","text_key","key","text_door","door","text_group","clock","text_clock","text_have","text_win","text_defeat","text_clipboard"},{"text_orange","text_skulll","skulll","leevel","text_leevel","text_a","text_b","text_icy","icy","text_up"} }
+images = {{"baaba","stone","tiles","text_tiles","text_baaba","text_stone","text_is","text_you","text_meta","text_this","text_red","text_all","text_text","text_move","text_push","text_icon","text_weak","text_open","text_shut","text_stop","keeke","flag","wall"},{"text_keeke","text_flag","text_wall","whater","text_whater","text_sink","lavaaa","text_lavaaa","text_hot","text_melt","text_fofofo","fofofo","text_key","key","text_door","door","text_group","clock","text_clock","text_have","text_win","text_defeat","text_clipboard"},{"text_orange","text_skulll","skulll","leevel","text_leevel","text_a","text_b","text_icy","icy","text_up","text_?"} }
 require "ui"
 require "tool"
 require "values"
