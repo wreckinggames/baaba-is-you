@@ -330,8 +330,8 @@ objectValues = {
     type = 0
   },
   {
-    name = "text_?",
-    sprite = "text_?",
+    name = "text_what",
+    sprite = "text_what",
     color = {2,1}
   }
 }
