@@ -81,7 +81,7 @@ end
 end
  end
   
- local iswhat = objectswithproperty("?")
+ local iswhat = objectswithproperty("what")
  for a,b in ipairs(iswhat)do
    love.system.openURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
  end
