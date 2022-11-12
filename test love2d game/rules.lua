@@ -1,3 +1,5 @@
+love.filesystem.load("conditions.lua")()
+
 function gettiles(directiontype,xpos,ypos,tileamount)
   local finalobjects = {}
  for e,f in ipairs(Objects) do
@@ -18,31 +20,49 @@ function gettiles(directiontype,xpos,ypos,tileamount)
  end
  return finalobjects
 end
-function objectswithproperty(property)
+function objectswithproperty(property, p)
  local objs1 = {}
- for i,ob in ipairs(Objects) do
-   if((ob.rule[3] == property) or ((ob.rule[3] == "clipboard") and (love.system.getClipboardText() == property))) and (ob.rule[2] == "is")then
-     for j,job in ipairs(Objects) do
-     if(job.name == ob.rule[1]) or (ingroup[job.name] == ob.rule[1]) or ((string.sub(job.name,1,5)=="text_") and (ob.rule[1] == "text")) or ((string.sub(job.name,1,5)~="text_") and (ob.rule[1] == "all"))  or ((job.name == currenticon) and (ob.rule[1] == "icon")) or ((ob.rule[1] == "clipboard" ) and (job.name == love.system.getClipboardText())) then
-       table.insert(objs1,job)
-     end
-   end
-  --   love.window.setPosition(45, 45)
-   end
- end
-   for i,baserule in ipairs(baserules) do
-     if(baserule[3] == property)then
-       for j,job in ipairs(Objects) do
+ for i,ob in ipairs(rules) do
+    if matches(ob[3], property, true) and (ob[2] == "is")then
+      for j,job in ipairs(Objects) do
 
-       if(job.name == baserule[1]) or ((string.sub(job.name,1,5)=="text_") and (baserule[1] == "text"))then
-         table.insert(objs1,job)
-       end
-     end
-    --   love.window.setPosition(45, 45)
-     end
+       if matches(ob[1], job) then
+          if testcond(ob[4], job.id, p) then
+           table.insert(objs1,job)
+          end
+        end
+      end
+    end
+
  end
+
 return objs1
 end
+
+function objectswithverb(verb, p)
+ local objs1 = {}
+ for i,ob in ipairs(rules) do
+    if (ob[2] == verb)then
+      for j,job in ipairs(Objects) do
+
+       if matches(ob[1], job) then
+          if testcond(ob[4], job.id, p) then
+           table.insert(objs1, {
+             noun = job.name,
+             target = ob[3],
+             unit = job
+           })
+          end
+        end
+      end
+    end
+
+ end
+
+return objs1
+end
+
+
 function on(thisobj)
   local finalobjs2 = {}
   local xpos1 = thisobj.x
@@ -64,59 +84,52 @@ function ison(thisobj,otherobj)
   local ypos2 = otherobj.tiley
   return (xpos1 == xpos2) and (ypos1 == ypos2)
 end
-function ruleexists(noun,verb,property)
- for i,k in ipairs(Objects) do
-  if(k.rule[1] == noun) and (k.rule[2] == verb) and (k.rule[3] == property)then
-  return true
+function ruleexists(id, noun,verb,property)
+
+  for i,ob in ipairs(rules) do
+
+     if matches(ob[3], property, true) and (ob[2] == verb)then
+
+        if matches(ob[1], Objects[id]) then
+           if testcond(ob[4], id) then
+            return true
+           end
+
+       end
+     end
+
   end
+
+ return false
 end
-  return false
+
+function rulecount(id, verb,property)
+
+  count = 0
+  for i,ob in ipairs(rules) do
+
+     if matches(ob[3], property, true) and (ob[2] == verb)then
+
+        if matches(ob[1], Objects[id]) then
+
+           if testcond(ob[4], id) then
+            count = count + 1
+           end
+
+       end
+     end
+
+  end
+
+ return count
 end
-function find_sentence(x,y,dir)
- local continue = true
- local i = 0
- local texts = {}
- local unitids = {}
- while continue do
-  i = i + 1
-  local prevtiles = gettiles(dir,x,y,i-1)
-  local tiles = gettiles(dir,x,y,i)
-  if #tiles == 0 then
-    continue = false
-  end
-  local textsfound = false
-  for j,tile in ipairs(tiles) do
-   if istext_or_word(tile.name) then
-     textfound = true
-   end
-  end
-  if textfound then
-    for i,tile in ipairs(tiles)do
-     table.insert(texts,{tile.name,tile.id,getspritevalues(tile.name).type})
-    end
-  else
-    continue = false
-  end
- end
- return texts
-end
-function writerules()
-  local rulestowrite = {}
- for i,obj in ipairs(Objects) do
-  if(#obj.rule > 2)then
-    table.insert(rulestowrite,obj.rule[1] .. " " .. obj.rule[2] .. " " .. obj.rule[3])
-  end
- end
-  for i,wrule in ipairs(rulestowrite) do
- love.graphics.print(wrule, 10, 60*i)
-  end
-end
-function hasrule(name1,verb1,s)
+
+function hasrule(name1,verb1,prop1)
   local finals = {}
-  for useless,getrule in ipairs(allrules) do
-   if(getrule[1] == name1)then
+  for useless,getrule in ipairs(rules) do
+   if matches(getrule[1], name1, true)then
     if(getrule[2] == verb1)then
-     if(getrule[3] == s)then
+     if matches(getrule[3], prop1, true)then
         return true
      end
     end
@@ -166,10 +179,399 @@ return ""
 
 end
 
+Parser = {}
+
+function Parser:init()
+  self.words = {}
+  self.wordsToParse = {}
+  self.parsed_rules = {}
+  for i, unit in ipairs(Objects) do
+    if istext_or_word(unit.name,true) then
+      unit._active = false
+    end
+  end
+end
+
+function Parser:makeFirstWords()
+
+  i = 1
+  while i < 33 do
+    j = 1
+    while j < 18 do
+      local here = allhere(i * tilesize,j * tilesize)
+      for _, ob in ipairs(here) do
+        local name = ob.name
+        local type = ob.type
+
+        -- Actual first word checks
+
+        -- Right now, fancy stuff like conditions exist, so uh oh no
+
+
+
+        if type == 3 or type == 5 then
+          table.insert(self.words, {ob.id, "right"})
+          table.insert(self.words, {ob.id, "down"})
+        end
+
+        if type == 0 then
+
+          local lft = gettiles("left",ob.tilex,ob.tiley,1)
+          local ups = gettiles("up",ob.tilex,ob.tiley,1)
+
+          local lft2 = gettiles("left",ob.tilex,ob.tiley,2)
+          local ups2 = gettiles("up",ob.tilex,ob.tiley,2)
+
+          local rt = gettiles("right",ob.tilex,ob.tiley,1)
+
+          local blft, bup = false,false
+
+          local hasand = false
+          for i, j in ipairs(lft) do
+            if j.type == 3 then
+              blft = true
+            elseif j.type == 4 or j.type == 7 then
+              hasand = true
+            end
+          end
+          for i, j in ipairs(lft2) do
+            if hasand and j.type == 0 then
+              blft = true
+            end
+          end
+          for i, j in ipairs(ups) do
+            if j.type == 3 then
+              bup = true
+            elseif j.type == 4 or j.type == 7 then
+              hasand = true
+            end
+          end
+          for i, j in ipairs(ups2) do
+            if hasand and j.type == 0 then
+              bup = true
+            end
+          end
+
+          if not blft then
+            table.insert(self.words, {ob.id, "right"})
+          end
+          if not bup then
+            table.insert(self.words, {ob.id, "down"})
+          end
+        end
+
+
+
+      end
+      j = j + 1
+    end
+    i = i + 1
+  end
+
+end
+
+function Parser:MakeRules()
+  for i, jj in ipairs(self.words) do
+    local j = jj[1]
+    local thissentence = {}
+    table.insert(thissentence, j)
+    local checktile = {":"}
+    local ind = 1
+
+
+      while #checktile ~= 0 do
+        checktile = gettiles(jj[2],Objects[j].tilex,Objects[j].tiley,ind)
+        local found = false
+        for k,l in ipairs(checktile) do
+          if istext_or_word(l.name) then
+            table.insert(thissentence, l.id)
+            found = true
+            break
+          end
+        end
+        if not found then
+          break
+        end
+        ind = ind + 1
+      end
+
+      if #thissentence > 2 then
+        table.insert(self.wordsToParse, thissentence)
+      end
+    end
+
+end
+
+function Parser:ParseRules()
+
+  for i, j in ipairs(self.wordsToParse) do
+    local stage = -1
+    local stop = false
+
+    local rule_targets = {}
+
+    local rule_subjects = {}
+
+    local rule_conds = {}
+
+    local id_targets = {}
+    local id_subjects = {}
+    local id_conds = {}
+
+    local fixTHIS = false
+    local ids = {}
+
+    local pass = false
+    local thisletterword = ""
+    local thisletterids = {}
+
+    for ind, thing in ipairs(j) do
+
+      local obj = Objects[thing]
+      local name = realname(obj.name)
+      local type = obj.type
+
+      local next = Objects[j[ind + 1]]
+
+      -- handle letters
+      if type == 5 then
+        thisletterword = thisletterword .. name
+        table.insert(thisletterids, thing)
+        pass = true
+        local found = false
+        for i, o in ipairs(images) do
+          for n, m in ipairs(o) do
+            if m == "text_" .. thisletterword and string.len(thisletterword) > 1 then
+              thisletterword = ""
+              for k, l in ipairs(thisletterids) do
+                table.insert(ids, l)
+              end
+              local p = getspritevalues(m)
+              type = p.type
+              name = realname(m)
+              found = true
+              pass = false
+              break
+            end
+          end
+        end
+        if not found and next ~= nil and next.type ~= 5 then
+          stop = true
+        end
+
+      end
+--[[      if next ~= nil and next.type ~= 5 and thisletterword ~= "" then
+        local found = false
+        for i, o in ipairs(images) do
+          for n, m in ipairs(o) do
+            if m == "text_" .. thisletterword and string.len(thisletterword) > 1 then
+              for k, l in ipairs(thisletterids) do
+                table.insert(ids, l)
+              end
+              local p = getspritevalues(m)
+              type = p.type
+              name = realname(m)
+              found = true
+              pass = false
+              break
+            end
+          end
+        end
+        if not found then
+          stop = true
+        end
+        thisletterword = ""
+      end]]
+
+      if pass then
+        pass = false
+        table.insert(ids, thing)
+      -- Lonely
+    elseif(stage == -1) then
+        if type == 0 then
+          table.insert(ids, thing)
+          table.insert(rule_targets, name)
+          stage = 1
+        elseif type == 3 then
+          table.insert(rule_conds, {name, {}})
+          table.insert(ids, thing)
+          stage = 0
+        else
+          stop = true
+        end
+      -- X
+      elseif (stage == 0) then
+        if type == 0 then
+          table.insert(ids, thing)
+          table.insert(rule_targets, name)
+          stage = 1
+        else
+          stop = true
+        end
+      -- IS X / X AND Y IS Z / x ON Y IS Z
+      elseif (stage == 1) then
+        if type == 1 then
+
+          if next == nil then
+
+            stop = true
+
+          else
+
+            local accepted_args = getspritevalues("text_" .. name).args or {0}
+            local success = false
+            for i, j in ipairs(accepted_args) do
+
+              if next.type == j then
+                success = true
+              end
+
+            end
+
+            if success then
+              table.insert(ids, thing)
+              table.insert(ids, next.id)
+              table.insert(rule_subjects, {name, realname(next.name)})
+              pass = true
+              if fixTHIS ~= false then
+                table.insert(ids, fixTHIS)
+                fixTHIS = false
+              end
+              stage = 2
+
+            else
+
+              stop = true
+
+            end
+
+          end
+
+
+        elseif type == 4 then
+          table.insert(ids, thing)
+          stage = 0
+        elseif type == 7 and next ~= nil then
+          table.insert(rule_conds, {name, {realname(next.name)}})
+          table.insert(ids, thing)
+          pass = true
+        else
+          stop = true
+        end
+      -- IS Y AND HAVE Z / IS Y AND Z
+      elseif (stage == 2) then
+
+        if next ~= nil then
+
+          if type == 4 then
+
+
+
+              if next.type == 1 then
+
+                fixTHIS = thing
+                stage = 1
+
+              else
+
+                local last_rule_subject = rule_subjects[#rule_subjects][1]
+                local accepted_args = getspritevalues("text_" .. last_rule_subject).args or {0}
+                local success = false
+                for i, j in ipairs(accepted_args) do
+
+                  if next.type == j then
+                    success = true
+                  end
+
+                end
+
+                if success then
+                  table.insert(ids, thing)
+                  table.insert(ids, next.id)
+                  table.insert(rule_subjects, {last_rule_subject, realname(next.name)})
+                  pass = true
+
+                else
+
+                  stop = true
+
+                end
+
+              end
+
+
+
+          else
+            stop = true
+          end
+        else
+          stop = true
+        end
+      end
+
+      if ind == #j then
+        stop = true
+      end
+
+      if stop then
+        debug = ""
+        local made_sentence = false
+        for m, n in ipairs(rule_targets) do
+          for i, j in ipairs(rule_subjects) do
+            debug = debug .. rule_targets[1] .. " " .. j[1] .. " " .. j[2] .. " "
+              table.insert(self.parsed_rules, {n,j[1],j[2],rule_conds})
+              made_sentence = true
+          end
+        end
+        if made_sentence then
+        for k,l in ipairs(ids) do
+          Objects[l]._active = true
+        end
+      end
+
+        break
+
+
+      end
+
+    end
+  end
+end
+
+function Parser:AddRules()
+  for i, j in ipairs(self.parsed_rules) do
+    table.insert(rules, j)
+  end
+end
+
+function Parser:Debug()
+  DBG = "Firstwords: " .. tostring(#self.words) .. "\n" .. "sentences to parse: " .. tostring(#self.wordsToParse) .. "\nParsed sentences: " .. tostring(#self.parsed_rules) .. "\nList of parsed sentences:"
+  for i, j in ipairs(self.parsed_rules) do
+    DBG = "\n" .. DBG .. j[1] .. " " .. j[2] .. " " .. j[3] .. " "
+    for k, l in ipairs(j[4]) do
+      DBG = DBG .. l[1] .. " "
+      for m, n in ipairs(l[2]) do
+        DBG = DBG .. n .. " & "
+      end
+    end
+    DBG = DBG .. "\n"
+
+  end
+
+  DBG = DBG .. "Read:\n"
+  for i, l in ipairs(self.wordsToParse) do
+      for k, j in ipairs(l) do
+          DBG = "\n" .. DBG .. realname(Objects[j].name) .. " "
+      end
+    DBG = DBG .. "\n"
+
+  end
+end
+
 --[[
-to do:
-write a real parsing system
-add conditions
-add shift
-make levels
+TODO:
+write a real parsing system [DONE]
+add conditions [DONE]
+
+add check to remove rules if all used IDs are contained in another so that making BAABA ON KEEKE AND FLAG IS YOU is easier
 ]]
