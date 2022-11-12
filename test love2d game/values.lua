@@ -1,10 +1,13 @@
 function getspritevalues(n)
+  if string.sub(n,1,10) == "text_text_" then
+    return {sprite = n,name = n,color = getspritevalues(string.sub(n,6,string.len(n))).color,rotate =  nil,args = nil,type = 0}
+  end
   for i,j in ipairs(objectValues)do
    if(j.name == n)then
      return j
    end
   end
-  return {sprite = n,name = n, color = {1,1}, rotate = nil}
+  return {sprite = n,name = n, color = {1,1}, rotate = nil, args = nil}
 end
 objectValues = {
   {
@@ -22,23 +25,23 @@ objectValues = {
   {
     name = "stone",
     sprite = "stone",
-    color = {2,3}
+    color = {1,3}
   },
   {
     name = "text_stone",
     sprite = "text_stone",
-    color = {2,3},
+    color = {1,3},
     type = 0
   },
   {
     name = "tiles",
     sprite = "tiles",
-    color = {1,3},
+    color = {1,4},
   },
   {
     name = "text_tiles",
     sprite = "text_tiles",
-    color = {1,3},
+    color = {1,4},
     type = 0
   },
   {
@@ -51,7 +54,8 @@ objectValues = {
     name = "text_is",
     sprite = "text_is",
     color = {1,2},
-    type = 1
+    type = 1,
+    args = {0, 2}
   },
   {
     name = "text_meta",
@@ -122,12 +126,14 @@ objectValues = {
   {
     name = "keeke",
     sprite = "keeke",
-    color = {1,1},
+    color = {2,1},
+    rotate = 4
   },
   {
     name = "flag",
     sprite = "flag",
     color = {3,1},
+    rotate = 4
   },
   {
     name = "wall",
@@ -137,7 +143,7 @@ objectValues = {
   {
     name = "text_keeke",
     sprite = "text_keeke",
-    color = {1,1},
+    color = {2,1},
     type = 0
   },
   {
@@ -201,7 +207,8 @@ objectValues = {
   {
     name = "fofofo",
     sprite = "fofofo",
-    color = {5,1}
+    color = {5,1},
+    rotate = 4
   },
   {
     name = "text_key",
@@ -212,7 +219,8 @@ objectValues = {
   {
     name = "key",
     sprite = "key",
-    color = {3,1}
+    color = {3,1},
+    rotate = 4
   },
   {
     name = "text_door",
@@ -275,7 +283,8 @@ objectValues = {
   {
     name = "skulll",
     sprite = "skulll",
-    color = {3,4}
+    color = {3,4},
+    rotate = 4
   },
   {
     name = "text_skulll",
@@ -287,7 +296,7 @@ objectValues = {
     name = "text_leevel",
     sprite = "text_leevel",
     color = {4,4},
-    typr = 0
+    type = 0
   },
   {
     name = "leevel",
@@ -324,14 +333,764 @@ objectValues = {
     color = {6,5}
   },
   {
-    name = "text_up",
-    sprite = "text_up",
+    name = "text_what",
+    sprite = "text_what",
+    color = {2,1},
+    type = 2
+  },
+  {
+    name = "pumpkin",
+    sprite = "pumpkin",
+    color = {2,1}
+  },
+  {
+    name = "text_pumpkin",
+    sprite = "text_pumpkin",
+    color = {2,1},
+    type = 0
+  },
+  {
+    name = "text_n'",
+    sprite = "text_N'",
+    color = {1,2},
+    type = 4
+  },
+  {
+    name = "text_dl",
+    sprite = "text_dl",
+    color = {1,2},
+    type = 14
+  },
+  {
+    name = "text_icon",
+    sprite = "text_icon",
+    color = {1,1},
+    type = 0
+  },
+
+  {
+    name = "text_lonely",
+    sprite = "text_lonely",
+    color = {1,1},
+    type = 3
+  },
+  {
+    name = "text_jelly",
+    sprite = "text_jelly",
     color = {6,5},
     type = 0
   },
   {
-    name = "text_what",
-    sprite = "text_what",
+    name = "jelly",
+    sprite = "jelly",
+    color = {6,5}
+  },
+  {
+    name = "text_often",
+    sprite = "text_often",
+    color = {4,1},
+    type = 3
+  },
+  {
+    name = "text_seldom",
+    sprite = "text_seldom",
+    color = {6,1},
+    type = 3
+  },
+  {
+    name = "text_powered",
+    sprite = "text_powered",
+    color = {3,1},
+    type = 3
+  },
+  {
+    name = "text_power",
+    sprite = "text_power",
+    color = {3,1},
+    type = 2
+  },
+  {
+    name = "text_on",
+    sprite = "text_on",
+    color = {1,2},
+    type = 7
+  },
+  {
+    name = "box",
+    sprite = "box",
+    color = {2,3}
+  },
+  {
+    name = "text_box",
+    sprite = "text_box",
+    color = {2,3},
+    type = 0
+  },
+  {
+    name = "circle",
+    sprite = "circle",
+    color = {3,1}
+  },
+  {
+    name = "text_circle",
+    sprite = "text_circle",
+    color = {3,1},
+    type = 0
+  },
+  {
+    name = "triangle",
+    sprite = "triangle",
+    color = {6,3}
+  },
+  {
+    name = "text_triangle",
+    sprite = "text_triangle",
+    color = {6,3},
+    type = 0
+  },
+  {
+    name = "square",
+    sprite = "square",
+    color = {4,4}
+  },
+  {
+    name = "text_square",
+    sprite = "text_sqaure",
+    color = {4,4},
+    type = 0
+  },
+  {
+    name = "text_fear",
+    sprite = "text_fear",
+    color = {1,1},
+    type = 1
+  },
+  {
+    name = "text_grass",
+    sprite = "text_grass",
+    color = {5,5},
+    type = 0
+  },
+  {
+    name = "grass",
+    sprite = "grass",
+    color = {5,5}
+  },
+  {
+    name = "text_grubble",
+    sprite = "text_grubble",
+    color = {4,5},
+    type = 0
+  },
+  {
+    name = "grubble",
+    sprite = "grubble",
+    color = {4,5}
+  },
+  {
+    name = "text_rubble",
+    sprite = "text_rubble",
+    color = {2,5},
+    type = 0
+  },
+  {
+    name = "rubble",
+    sprite = "rubble",
+    color = {2,5}
+  },
+  {
+    name = "text_scribble",
+    sprite = "text_scribble",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "scribble",
+    sprite = "scribble",
+    color = {1,2}
+  },
+  {
+    name = "text_hex",
+    sprite = "text_hex",
+    color = {2,3},
+    type = 0
+  },
+  {
+    name = "hex",
+    sprite = "hex",
+    color = {2,3}
+  },
+  {
+    name = "text_pentagon",
+    sprite = "text_pentagon",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "pentagon",
+    sprite = "pentagon",
+    color = {1,2}
+  },
+  {
+    name = "text_i",
+    sprite = "text_i",
+    color = {1,2},
+    type = 5
+  },
+  {
+    name = "text_s",
+    sprite = "text_s",
+    color = {1,2},
+    type = 5
+  },
+  {
+    name = "text_float",
+    sprite = "text_float",
+    color = {6,5},
+    type = 2
+  },
+  {
+    name = "text_cake",
+    sprite = "text_cake",
+    color = {6,4},
+    type = 0
+  },
+  {
+    name = "cake",
+    sprite = "cake",
+    color = {6,4}
+  },
+  {
+    name = "text_the m",
+    sprite = "text_the m",
+    color = {6,5},
+    type = 0
+  },
+  {
+    name = "the m",
+    sprite = "the m",
+    color = {6,5},
+    rotate = 4
+  },
+  {
+    name = "jijiji",
+    sprite = "jijiji",
+    color = {1,1},
+    rotate = 4
+  },
+  {
+    name = "text_jijiji",
+    sprite = "text_jijiji",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "text_no",
+    sprite = "text_no",
+    color = {7,1},
+    type = 0
+  },
+  {
+    name = "no",
+    sprite = "no",
+    color = {7,1}
+  },
+  {
+    name = "text_small",
+    sprite = "text_small",
+    color = {7,1},
+    type = 2
+  },
+  {
+    name = "text_brick",
+    sprite = "text_brick",
+    color = {2,5},
+    type = 0
+  },
+  {
+    name = "brick",
+    sprite = "brick",
+    color = {2,5}
+  },
+  {
+    name = "text_bubble",
+    sprite = "text_bubble",
+    color = {6,5},
+    type = 0
+  },
+  {
+    name = "bubble",
+    sprite = "bubble",
+    color = {6,5}
+  },
+  {
+    name = "text_robot",
+    sprite = "text_robot",
+    color = {1,4},
+    type = 0
+  },
+  {
+    name = "robot",
+    sprite = "robot",
+    color = {1,4},
+    rotate = 4
+  },
+  {
+    name = "text_hedge",
+    sprite = "text_hedge",
+    color = {5,1},
+    type = 0
+  },
+  {
+    name = "hedge",
+    sprite = "hedge",
+    color = {5,1},
+  },
+  {
+    name = "text_pillar",
+    sprite = "text_pillar",
+    color = {1,3},
+    type = 0
+  },
+  {
+    name = "pillar",
+    sprite = "pillar",
+    color = {1,3},
+  },
+  {
+    name = "text_love",
+    sprite = "text_love",
+    color = {5,4},
+    type = 0
+  },
+  {
+    name = "love",
+    sprite = "love",
+    color = {5,4},
+  },
+  {
+    name = "text_star",
+    sprite = "text_star",
+    color = {3,1},
+    type = 0
+  },
+  {
+    name = "star",
+    sprite = "star",
+    color = {3,1},
+  },
+  {
+    name = "text_algae",
+    sprite = "text_algae",
+    color = {5,1},
+    type = 0
+  },
+  {
+    name = "algae",
+    sprite = "algae",
+    color = {5,1},
+  },
+  {
+    name = "text_flower",
+    sprite = "text_flower",
+    color = {6,3},
+    type = 0
+  },
+  {
+    name = "flower",
+    sprite = "flower",
+    color = {6,3},
+  },
+  {
+    name = "text_crab",
+    sprite = "text_crab",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "crab",
+    sprite = "crab",
+    color = {1,1},
+    rotate = 4
+  },
+  {
+    name = "text_block",
+    sprite = "text_block",
+    color = {2,1},
+    type = 0
+  },
+  {
+    name = "block",
+    sprite = "block",
     color = {2,1}
-  }
+  },
+  {
+    name = "text_pa",
+    sprite = "text_pa",
+    color = {4,4},
+    type = 0
+  },
+  {
+    name = "pa",
+    sprite = "pa",
+    color = {4,4},
+    rotate = 4
+  },
+  {
+    name = "text_baadbad",
+    sprite = "text_baadbad",
+    color = {7,1},
+    type = 0
+  },
+  {
+    name = "baadbad",
+    sprite = "baadbad",
+    color = {7,1},
+    rotate = 4
+  },
+  {
+    name = "text_bolt",
+    sprite = "text_bolt",
+    color = {3,1},
+    type = 0
+  },
+  {
+    name = "bolt",
+    sprite = "bolt",
+    color = {3,1},
+    rotate = 4
+  },
+  {
+    name = "text_statue",
+    sprite = "text_statue",
+    color = {1,3},
+    type = 0
+  },
+  {
+    name = "statue",
+    sprite = "statue",
+    color = {1,4},
+    rotate = 4
+  },
+  {
+    name = "text_ghost",
+    sprite = "text_ghost",
+    color = {5,4},
+    type = 0
+  },
+  {
+    name = "ghost",
+    sprite = "ghost",
+    color = {5,4},
+    rotate = 4
+  },
+  {
+    name = "text_cog",
+    sprite = "text_cog",
+    color = {1,4},
+    type = 0
+  },
+  {
+    name = "cog",
+    sprite = "cog",
+    color = {1,4}
+  },
+  {
+    name = "text_pipe",
+    sprite = "text_pipe",
+    color = {1,4},
+    type = 0
+  },
+  {
+    name = "pipe",
+    sprite = "pipe",
+    color = {1,4}
+  },
+  {
+    name = "text_foliage",
+    sprite = "text_foliage",
+    color = {2,1},
+    type = 0
+  },
+  {
+    name = "foliage",
+    sprite = "foliage",
+    color = {2,5}
+  },
+  {
+    name = "text_fruit",
+    sprite = "text_fruit",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "fruit",
+    sprite = "fruit",
+    color = {1,1}
+  },
+  {
+    name = "text_husk",
+    sprite = "text_husk",
+    color = {2,5},
+    type = 0
+  },
+  {
+    name = "husk",
+    sprite = "husk",
+    color = {2,5}
+  },
+  {
+    name = "text_leaf",
+    sprite = "text_leaf",
+    color = {3,1},
+    type = 0
+  },
+  {
+    name = "leaf",
+    sprite = "leaf",
+    color = {3,1}
+  },
+  {
+    name = "text_reed",
+    sprite = "text_reed",
+    color = {2,3},
+    type = 0
+  },
+  {
+    name = "reed",
+    sprite = "reed",
+    color = {2,3}
+  },
+  {
+    name = "text_stump",
+    sprite = "text_stump",
+    color = {2,5},
+    type = 0
+  },
+  {
+    name = "stump",
+    sprite = "stump",
+    color = {2,5}
+  },
+  {
+    name = "text_tree",
+    sprite = "text_tree",
+    color = {5,1},
+    type = 0
+  },
+  {
+    name = "tree",
+    sprite = "tree",
+    color = {5,1}
+  },
+  {
+    name = "text_goal",
+    sprite = "text_goal",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "goal",
+    sprite = "goal",
+    color = {1,2}
+  },
+  {
+    name = "text_target",
+    sprite = "text_target",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "target",
+    sprite = "target",
+    color = {1,2}
+  },
+  {
+    name = "text_place",
+    sprite = "text_place",
+    color = {5,1},
+    type = 2
+  },
+  {
+    name = "text_placed",
+    sprite = "text_placed",
+    color = {2,1},
+    type = 2
+  },
+  {
+    name = "text_active",
+    sprite = "text_active",
+    color = {5,1},
+    type = 3
+  },
+  {
+    name = "text_button",
+    sprite = "text_button",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "button",
+    sprite = "button",
+    color = {1,1}
+  },
+  {
+    name = "text_possess",
+    sprite = "text_possess",
+    color = {6,4},
+    type = 2
+  },
+  {
+    name = "text_fungus",
+    sprite = "text_fungus",
+    color = {2,3},
+    type = 0
+  },
+  {
+    name = "fungus",
+    sprite = "fungus",
+    color = {2,3}
+  },
+  {
+    name = "text_belt",
+    sprite = "text_belt",
+    color = {6,3},
+    type = 0
+  },
+  {
+    name = "belt",
+    sprite = "belt",
+    color = {6,3},
+    rotate = 4
+  },
+  {
+    name = "text_bug",
+    sprite = "text_bug",
+    color = {2,3},
+    type = 0
+  },
+  {
+    name = "bug",
+    sprite = "bug",
+    color = {2,3},
+    rotate = 4
+  },
+  {
+    name = "text_moon",
+    sprite = "text_moon",
+    color = {3,1},
+    type = 0
+  },
+  {
+    name = "moon",
+    sprite = "moon",
+    color = {3,1}
+  },
+  {
+    name = "text_dust",
+    sprite = "text_dust",
+    color = {2,3},
+    type = 0
+  },
+  {
+    name = "dust",
+    sprite = "dust",
+    color = {2,3}
+  },
+  {
+    name = "text_rocket",
+    sprite = "text_rocket",
+    color = {1,3},
+    type = 0
+  },
+  {
+    name = "rocket",
+    sprite = "rocket",
+    color = {1,3},
+    rotate = 4
+  },
+  {
+    name = "text_cloud",
+    sprite = "text_cloud",
+    color = {6,5},
+    type = 0
+  },
+  {
+    name = "cloud",
+    sprite = "cloud",
+    color = {6,5},
+  },
+  {
+    name = "text_rose",
+    sprite = "text_rose",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "rose",
+    sprite = "rose",
+    color = {1,1},
+  },
+  {
+    name = "text_fence",
+    sprite = "text_fence",
+    color = {2,3},
+    type = 0
+  },
+  {
+    name = "fence",
+    sprite = "fence",
+    color = {2,3},
+  },
+  {
+    name = "text_cliff",
+    sprite = "text_cliff",
+    color = {2,4},
+    type = 0
+  },
+  {
+    name = "cliff",
+    sprite = "cliff",
+    color = {2,4},
+  },
+  {
+    name = "text_sun",
+    sprite = "text_sun",
+    color = {3,1},
+    type = 0
+  },
+  {
+    name = "sun",
+    sprite = "sun",
+    color = {3,1},
+  },
+  {
+    name = "text_bird",
+    sprite = "text_bird",
+    color = {2,1},
+    type = 0
+  },
+  {
+    name = "bird",
+    sprite = "bird",
+    color = {2,1},
+    rotate = 4
+  },
+  {
+    name = "text_bat",
+    sprite = "text_bat",
+    color = {7,1},
+    type = 0
+  },
+  {
+    name = "bat",
+    sprite = "bat",
+    color = {7,1},
+  },
+  {
+    name = "text_up",
+    sprite = "text_up",
+    color = {6,5},
+    type = 2
+  },
 }
