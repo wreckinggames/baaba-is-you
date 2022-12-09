@@ -11,8 +11,24 @@ local colorblocks = {
   },
   {
     name = "blue",
+    color = {6,1}
+  },
+  {
+    name = "yellow",
+    color = {3,1}
+  },
+  {
+    name = "green",
     color = {5,1}
-  }
+  },
+  {
+    name = "gellow",
+    color = {3,2}
+  },
+  {
+    name = "purple",
+    color = {7,1}
+  },
 }
 local dirblocks = {
   "up"
@@ -187,7 +203,7 @@ end
    c.dir = direct
   end
  end
- 
+
  dels = handledels(dels)
 
 

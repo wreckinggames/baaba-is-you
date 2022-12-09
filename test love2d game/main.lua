@@ -42,7 +42,7 @@ images=
  "circle", "text_circle", "triangle", "text_triangle", "text_fear","grass","text_grass","grubble","text_grubble","rubble","text_rubble", "scribble", "text_scribble","hex","text_hex","pentagon","text_pentagon","text_float", "cake","text_cake","the m"},{"text_the m", "jijiji",
  "text_jijiji","no","text_no","text_small","crab","text_crab","robot","text_robot","brick","text_brick","hedge","text_hedge","block","text_block","pa","text_pa","belt","text_belt","fungus","text_fungus","bubble"},{"text_bubble","pillar","text_pillar","flower","text_flower","algae","text_algae","love",
  "text_love","star","text_star","baadbad","text_baadbad","bolt","text_bolt","cog","text_cog","foliage","text_foliage","fruit","text_fruit","ghost","text_ghost"},{"husk","text_husk","leaf","text_leaf","pipe","text_pipe","reed","text_reed","statue","text_statue","tree","text_tree","text_active","text_place","text_placed","text_goal","text_target","goal","target","button","text_button","text_bird","bird"},{"bat",
-   "text_bat","sun","text_sun","cliff","text_cliff","fence","text_fence","rose","text_rose","cloud","text_cloud","rocket","text_rocket","dust","text_dust", "text_up"
+   "text_bat","sun","text_sun","cliff","text_cliff","fence","text_fence","rose","text_rose","cloud","text_cloud","rocket","text_rocket","dust","text_dust", "text_up", "text_yellow", "text_gellow", "text_green", "text_blue", "text_purple"
  } }
 require "ui"
 require "tool"
