@@ -1093,4 +1093,34 @@ objectValues = {
     color = {6,5},
     type = 2
   },
+  {
+    name = "text_yellow",
+    sprite = "text_yellow",
+    color = {3,1},
+    type = 2
+  },
+  {
+    name = "text_gellow",
+    sprite = "text_gellow",
+    color = {3,2},
+    type = 2
+  },
+  {
+    name = "text_green",
+    sprite = "text_green",
+    color = {5,1},
+    type = 2
+  },
+  {
+    name = "text_blue",
+    sprite = "text_blue",
+    color = {6,1},
+    type = 2
+  },
+  {
+    name = "text_purple",
+    sprite = "text_purple",
+    color = {7,1},
+    type = 2
+  },
 }
