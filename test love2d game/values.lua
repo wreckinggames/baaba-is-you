@@ -1343,8 +1343,7 @@ objectValues = {
   {
     name = "pixel",
     sprite = "pixel",
-    color = {1,2},
-    rotate = 6
+    color = {1,2}
   },
   {
     name = "text_pixel",
