@@ -152,7 +152,7 @@ function findproperties()
 
   local istextify2 = objectswithproperty("text")
    for i,c in ipairs(istextify2) do
-     if c.transformable then
+     if c.transformable and string.sub(c.name, 1, 10) ~= "text_text_" then
        makeobject(c.tilex,c.tiley,"text_" .. c.name,c.dir)
 
        handledels({c})
@@ -162,7 +162,7 @@ function findproperties()
 
    local istextify = objectswithproperty("meta")
     for i,c in ipairs(istextify) do
-      if c.transformable then
+      if c.transformable and string.sub(c.name, 1, 10) ~= "text_text_" then
 
 
         makeobject(c.tilex,c.tiley,"text_" .. c.name,c.dir)

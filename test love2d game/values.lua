@@ -1495,7 +1495,7 @@ objectValues = {
     name = "fish",
     sprite = "fish",
     color = {6,1},
-    rotate = 6
+    rotate = 4
   },
   {
     name = "text_fish",
