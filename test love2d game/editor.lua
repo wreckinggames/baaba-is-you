@@ -1,31 +1,36 @@
 editor_curr_objects = {}
 ineditor = true
-function addobject(heldtile,x,y)
+function addobject(heldtile,x,y,dir)
   if not ineditor then
     return
   end
 
   local obj = {}
   obj.size = 1
-  obj.x = math.floor(love.mouse.getX()/  tilesize  )*  tilesize
-  obj.y = math.floor(love.mouse.getY()/ tilesize )* tilesize
-  obj.tilex = math.floor(obj.x/ tilesize )
-  obj.tiley = math.floor(obj.y/ tilesize )
+  obj.x = x *  tilesize
+  obj.y = y * tilesize
+  obj.tilex = x
+  obj.tiley = y
 
 
   obj.name = heldtile
       obj.type = getspritevalues(obj.name).type
   obj.sprite = obj.name
   obj.color = getspritevalues(obj.name).color
-  obj.dir = "right"
+  obj.dir = dir
 
   obj.id = #Objects + 1
   obj.transformable = true
 
+
   obj.active = true
-  if obj.tilex > 0 and obj.tiley > 0 then
+
+  updatesprite(obj)
+
+  if obj.tilex > 0 and obj.tilex < (levelx - 1) and obj.tiley > 0 and obj.tiley < levely then
     table.insert(editor_curr_objects,obj)
   end
+
 
 end
 
@@ -52,22 +57,13 @@ function draweditor()
 
 
 
+  love.graphics.setBackgroundColor(palettecolors[1][5])
+
 
 
   for i, c in ipairs(editor_curr_objects) do
 
     -- copied from main.lua
-   if(getspritevalues(c.name).rotate == 4) and type(c.dir) == "string" then
-
-     c.sprite =  c.name .. "-" .. c.dir
-
-     if(c.customcolor == false)then
-
-       c.color = getspritevalues(c.name).color
-
-     end
-
-   end
    local t = palettecolors[c.color[1]]
 
    if(t ~= nil) and (t[c.color[2]] ~= nil)then
@@ -78,61 +74,105 @@ function draweditor()
      end
    end
 
-   love.graphics.setBackgroundColor(palettecolors[1][5])
+
 
    if(c.active == true)then
-     local csprite = nil
-     if string.sub(c.sprite,1,10) == "text_text_" then
-       csprite = love.graphics.newImage("sprite/" .. string.sub(c.sprite,6,-1) .. ".png")
-     else
-       csprite = love.graphics.newImage("sprite/" .. c.sprite .. ".png")
-     end
-     love.graphics.draw(csprite,c.x,c.y,0,c.size)
+     local xchange = -((c.sprite:getWidth() - 24) / 2) * (tilesize / 24)
+     local ychange = -((c.sprite:getHeight() - 24) / 2) * (tilesize / 24)
+
+     love.graphics.draw(c.sprite,c.x  + x_offset + xchange,c.y  + y_offset + ychange,0,c.size  * (tilesize / 24))
      love.graphics.setColor(1,1,1)
 
    end
 
    love.graphics.setColor(1,0,0)
 
-   if string.sub(c.sprite,1,10) == "text_text_" then
+   if string.sub(c.name,1,10) == "text_text_" then
      love.graphics.setColor(1,0,0.5)
-     love.graphics.draw(love.graphics.newImage("sprite/textMeta.png"),c.x,c.y,0,c.size)
-   end
-
-   local hour = os.date("*t",os.time()).hour
-
-   if(tonumber(hour) == 0)then
-     hour = "12"
-   end
-
-   if(string.len(hour) == 1)then
-     hour = "0" .. hour
-   end
-
-   if(tonumber(hour) > 12)then
-     hour = tostring(tonumber(hour) - 12)
-   end
-
-   local min = os.date("*t",os.time()).min
-
-   if(string.len(min) == 1)then
-     min = "0" .. min
+     love.graphics.draw(textmeta,c.x  + x_offset,c.y  + y_offset,0,c.size * (tilesize / 24))
    end
 
    if(c.name == "clock")then
-     love.graphics.print(hour .. ":" .. min,c.x-3,c.y+tilesize/3+1,0,0.8)
+     local hour = os.date("*t",os.time()).hour
+
+     if(tonumber(hour) == 0)then
+       hour = "12"
+     end
+
+     if(string.len(hour) == 1)then
+       hour = "0" .. hour
+     end
+
+     if(tonumber(hour) > 12)then
+       hour = tostring(tonumber(hour) - 12)
+     end
+
+     local min = os.date("*t",os.time()).min
+
+     if(string.len(min) == 1)then
+       min = "0" .. min
+     end
+
+     love.graphics.print(hour .. ":" .. min,c.x + 1 + x_offset,c.y+tilesize/3+1  + y_offset,0,1.3)
+   elseif c.name == "calendar" then
+     love.graphics.setColor(0,0,0)
+     local date = os.date("*t",os.time()).day
+     love.graphics.draw(love.graphics.newImage("sprite/calendarnumbers/c" .. tostring(date) .. ".png"),c.x  + x_offset,c.y  + y_offset,0,c.size * (tilesize / 24))
+
    end
 
   end
+
+  if heldtile ~= "" then
+      -- copied from main.lua
+     local heldsprite = heldtile
+     local place_x, place_y = math.floor(love.mouse.getX()/  tilesize  ) * tilesize, math.floor(love.mouse.getY()/  tilesize  ) * tilesize
+     if place_x > 0 and place_x < (levelx - 1) * tilesize and place_y > 0 and place_y < levely * tilesize then
+       local heldrotate = getspritevalues(heldtile).rotate
+       if ((heldrotate == 4) or (heldrotate == 6)) and type(helddir) == "string" then
+
+         heldsprite =  heldtile .. "-" .. helddir
+
+       end
+
+      local tcolor = getspritevalues(heldtile).color
+       local t = palettecolors[tcolor[1]]
+
+       if(t ~= nil) and (t[tcolor[2]] ~= nil)then
+         love.graphics.setColor(t[tcolor[2]][1], t[tcolor[2]][2], t[tcolor[2]][3], 0.5)
+
+       end
+
+
+         local csprite = nil
+         if string.sub(heldsprite,1,10) == "text_text_" then
+           csprite = love.graphics.newImage("sprite/" .. string.sub(heldsprite,6,-1) .. ".png")
+         else
+           csprite = love.graphics.newImage("sprite/" .. heldsprite .. ".png")
+         end
+         local xchange = -((csprite:getWidth() - 24) / 2) * (tilesize / 24)
+         local ychange = -((csprite:getHeight() - 24) / 2) * (tilesize / 24)
+         love.graphics.draw(csprite,place_x  + x_offset + xchange,place_y + y_offset + ychange,0,(tilesize / 24))
+
+       love.graphics.setColor(1,0,0)
+
+       if metaval == 1 then
+         love.graphics.setColor(1,0,0.5, 0.5)
+         love.graphics.draw(love.graphics.newImage("sprite/textMeta.png"),place_x  + x_offset,place_y  + y_offset,0,(tilesize / 24))
+       end
+     end
+
+   end
 
 end
 
 
 function loadlevel()
+  menu_state = "editor_test"
   ineditor = false
   for i, j in ipairs(editor_curr_objects) do
 
-      makeobject(j.tilex,j.tiley,j.name,"right",j.meta)
+      makeobject(j.tilex,j.tiley,j.name,j.dir,j.meta)
 
   end
   rules = {}
@@ -147,26 +187,34 @@ function loadlevel()
     Parser:AddRules()
     -- oh boy debugging
     -- Parser:Debug()
+
+    for i, j in ipairs(Objects) do
+
+      dotiling(j)
+      updatesprite(j)
+    end
 end
 
 function dielevel()
+  menu_state = "editor"
   ineditor = true
   Objects = {}
 
   currenticon = "baaba"
+  wewinning = false
   love.window.setIcon(love.image.newImageData("sprite/baaba.png"))
 
 end
 
 function handletilething()
 
-    if (love.mouse.getX() > 740 and love.mouse.getY() > 520 and love.mouse.getX() < 800 and love.mouse.getY() < 580) then return end
+    if (love.mouse.getX() > 1180 and love.mouse.getY() > 720 and love.mouse.getX() < 1260 and love.mouse.getY() < 780) then return end
     metaval = 0
-   if love.mouse.isDown(1) and ineditor and not (love.mouse.getX() > 740 and love.mouse.getY() > 520 and love.mouse.getX() < 800 and love.mouse.getY() < 580) then
+   if love.mouse.isDown(1) and ineditor and not (love.mouse.getX() > 1180 and love.mouse.getY() > 720 and love.mouse.getX() < 1260 and love.mouse.getY() < 780) then
 
      if not hideui then
       for i2,c in ipairs(buttons) do
-       if (dist(love.mouse.getX(),c.buttonsize+c.y1,c.buttonsize+c.x1,love.mouse.getY()) < c.buttonsize*2) then
+       if love.mouse.getX() > c.x1 and love.mouse.getX() < c.x1 + (3.3 * c.buttonsize) and  love.mouse.getY() > c.y1 and love.mouse.getY() < c.y1 + (3.3 * c.buttonsize) then
        heldtile = c.buttonname
        --love.window.setPosition(4,6)
        end
@@ -177,8 +225,8 @@ function handletilething()
    if love.mouse.isDown(1) then
      if not hideui then
       for i6,c in ipairs(buttons) do
-        if (dist(love.mouse.getX(),c.buttonsize+c.y1,c.buttonsize+c.x1,love.mouse.getY()) < c.buttonsize*2 )then
-        onbutton = true
+        if love.mouse.getX() > c.x1 - 1 and love.mouse.getX() < c.x1 + (3.3 * c.buttonsize) + 1 and  love.mouse.getY() > c.y1 - 1 and love.mouse.getY() < c.y1 + (3.3 * c.buttonsize) + 1 then
+          onbutton = true
         end
       end
     end
@@ -187,7 +235,7 @@ function handletilething()
     end
     if(onbutton==false) then
       if(love.keyboard.isDown("m")) then
-      metaval = 1 -- sorry
+      metaval = 1
       end
     --getobject()
     local dot = true
@@ -200,9 +248,9 @@ function handletilething()
      if dot then
 
        if metaval ~= 1 then
-         addobject(heldtile,love.mouse.getX(),love.mouse.getY())
+         addobject(heldtile,math.floor(love.mouse.getX()/  tilesize  ),math.floor(love.mouse.getY()/  tilesize  ), helddir )
        else
-         addobject("text_"..heldtile,love.mouse.getX(),love.mouse.getY())
+         addobject("text_"..heldtile,math.floor(love.mouse.getX()/  tilesize  ),math.floor(love.mouse.getY()/  tilesize  ), helddir )
        end
      end
 

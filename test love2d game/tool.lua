@@ -89,6 +89,72 @@ function matches(word, unit, justname_)
 
 end
 
+
+--if this isnt clear, take a unit and a noun and gets all names that match that pair
+function unitreference(unit, ref)
+
+  if ref == "text" then
+    if string.sub(unit.name, 1, 5) == "text_" then
+      return {"text_text"}
+    else
+      return {"text_" .. unit.name}
+    end
+  end
+
+  if ref == "this" then
+    return {"text_this"}
+  end
+
+  if ref == "clipboard" then
+    local clipboard = love.system.getClipboardText()
+    local found  = false
+    for i,val in ipairs(objectValues)do
+      if(clipboard == val.name) then
+        found = true
+      end
+    end
+    if found then
+      return {clipboard}
+    else
+      return {}
+    end
+  end
+
+  if ref == "group" then
+    local groups = {}
+    for i, v in pairs(ingroup) do
+      local hasgroup = false
+      for a, b in ipairs(v) do
+        if b == "group" then
+          hasgroup = true
+          break
+        end
+      end
+      if hasgroup then
+        local unit = Objects[i]
+        table.insert(groups, unit.name)
+      end
+    end
+    return groups
+  end
+
+  if ref == "icon" then
+    return {currenticon}
+  end
+
+  if ref == "all" then
+    local alls = {}
+    for i, j in ipairs(Objects) do
+      if not istext_or_word(j.name, true) then
+        table.insert(alls, j.name)
+      end
+    end
+    return alls
+  end
+
+  return {ref}
+end
+
 function float(ob1,ob2)
   local float1 = ruleexists(ob1, Objects[ob1].name ,"is","float")
   local float2 = ruleexists(ob2, Objects[ob2].name ,"is","float")
