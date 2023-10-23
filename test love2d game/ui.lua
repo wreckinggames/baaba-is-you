@@ -10,7 +10,7 @@ function initui()
 
         local t = palettecolors[getspritevalues(d).color[1]]
         Button1.color1 =  t[getspritevalues(d).color[2]]
-        Button1.inactivecolor = {Button1.color1[1] * 0.5, Button1.color1[2] * 0.5, Button1.color1[3] * 0.5}
+        Button1.inactivecolor = {Button1.color1[1] * 0.45, Button1.color1[2] * 0.45, Button1.color1[3] * 0.55}
 
 
         --Button1.color1 = getspritevalues(d).color--{0.5,0.5,0.5}
@@ -18,7 +18,7 @@ function initui()
 
         Button1.buttonsprite = love.graphics.newImage("sprite/" .. d .. ".png")
 
-        Button1.buttonsize = 10
+        Button1.buttonsize = 10 * windowtilesize
         Button1.x1 = (j-1)*Button1.buttonsize*3.3
         Button1.y1 = (i-1)*Button1.buttonsize*3.3
         table.insert(buttons,Button1)
@@ -44,9 +44,9 @@ function drawui()
     if hover then
       c1, c2, c3, cc = c.inactivecolor[1], c.inactivecolor[2], c.inactivecolor[3], c.inactivecolor
     end
-    love.graphics.setColor(c1 * 0.6,c2 * 0.6,c3 * 0.6)
+    love.graphics.setColor(c1 * 0.58,c2 * 0.58,c3 * 0.62)
     love.graphics.rectangle("fill",c.x1,c.y1,c.buttonsize*3.3,c.buttonsize*3.3)
-    love.graphics.setColor(c1 * 0.4,c2 * 0.4,c3 * 0.4) --Button1.color1[1] * 0.4,Button1.color1[2] * 0.4,Button1.color1[3] * 0.4
+    love.graphics.setColor(c1 * 0.37,c2 * 0.37,c3 * 0.43) --Button1.color1[1] * 0.4,Button1.color1[2] * 0.4,Button1.color1[3] * 0.4
     love.graphics.rectangle("fill",Button1.buttonsize/6+c.x1,Button1.buttonsize/6+c.y1,c.buttonsize*3,c.buttonsize*3,c.buttonsize/3,c.buttonsize/3) --c.buttonsize/6,c.buttonsize*3,c.buttonsize*3,c.buttonsize/3,c.buttonsize/3)
     love.graphics.setColor(cc)
     love.graphics.draw(c.buttonsprite,c.buttonsize/3+c.x1,c.buttonsize/3+c.y1,0,c.buttonsize/10)

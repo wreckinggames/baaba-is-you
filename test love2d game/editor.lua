@@ -40,11 +40,16 @@ function delobject (x,y)
   if not ineditor then
     return
   end
+  local deleted = false
   for i, j in ipairs(editor_curr_objects) do
 
     if j.tilex == math.floor(x/tilesize) and j.tiley == math.floor(y/tilesize) then
       table.remove(editor_curr_objects, i)
+      deleted = true
     end
+  end
+  if deleted then
+    love.audio.play(love.audio.newSource("sound/editordelete.wav","static"))
   end
 
 end
@@ -168,31 +173,47 @@ end
 
 
 function loadlevel()
+
   menu_state = "editor_test"
   ineditor = false
+  filecount = 0
+  fileimages = {}
+  currenticon = "baaba"
   for i, j in ipairs(editor_curr_objects) do
 
       makeobject(j.tilex,j.tiley,j.name,j.dir,j.meta)
 
   end
-  rules = {}
-    Parser:init()
-    Parser:makeFirstWords()
-    Parser:MakeRules()
-    Parser:ParseRules()
-    rules = {}
-    for i,b in ipairs(baserules) do
-      table.insert(rules,b)
-    end
-    Parser:AddRules()
-    -- oh boy debugging
-    -- Parser:Debug()
+  parse_text()
 
-    for i, j in ipairs(Objects) do
-
-      dotiling(j)
-      updatesprite(j)
+  local cb = love.system.getClipboardText()
+  for a, b in ipairs(rules) do
+    if b[3] == "uncopy" and (matches(b[1], cb, true) or (matches(b[1], "text_" .. cb, true) and is_prop(cb))) then
+      love.system.setClipboardText("oops!")
     end
+  end
+
+  ingroup = {}
+  local groups = objectswithproperty("group")
+  for i,group in ipairs(groups) do
+    if ingroup[group.id] then
+      table.insert(ingroup[group.id], "group")
+    else
+      ingroup[group.id] = {"group"}
+    end
+  end
+  startproperties()
+
+  for i, j in ipairs(Objects) do
+    dotiling(j)
+    updatesprite(j)
+  end
+
+  if not music:isPlaying() then
+    music:play()
+    music:setLooping(true)
+  end
+
 end
 
 function dielevel()
@@ -202,19 +223,29 @@ function dielevel()
 
   currenticon = "baaba"
   wewinning = false
+  theloop = false
   love.window.setIcon(love.image.newImageData("sprite/baaba.png"))
+
+  if not music:isPlaying() then
+    music:play()
+    music:setLooping(true)
+  end
 
 end
 
 function handletilething()
+  local width, height = love.graphics.getDimensions()
 
-    if (love.mouse.getX() > 1180 and love.mouse.getY() > 720 and love.mouse.getX() < 1260 and love.mouse.getY() < 780) then return end
+    if (love.mouse.getX() > (width - 100) and love.mouse.getY() > (height - 100) and love.mouse.getX() < (width - 20) and love.mouse.getY() < (height - 40)) then return end
     metaval = 0
-   if love.mouse.isDown(1) and ineditor and not (love.mouse.getX() > 1180 and love.mouse.getY() > 720 and love.mouse.getX() < 1260 and love.mouse.getY() < 780) then
+   if love.mouse.isDown(1) and ineditor and not (love.mouse.getX() > (width - 100) and love.mouse.getY() > (height - 100) and love.mouse.getX() < (width - 20) and love.mouse.getY() < (height - 40)) then
 
      if not hideui then
       for i2,c in ipairs(buttons) do
        if love.mouse.getX() > c.x1 and love.mouse.getX() < c.x1 + (3.3 * c.buttonsize) and  love.mouse.getY() > c.y1 and love.mouse.getY() < c.y1 + (3.3 * c.buttonsize) then
+         if heldtile ~= c.buttonname then
+           love.audio.play(love.audio.newSource("sound/select.wav","static"))
+         end
        heldtile = c.buttonname
        --love.window.setPosition(4,6)
        end
@@ -245,12 +276,15 @@ function handletilething()
         dot = false
       end
     end
-     if dot then
-
-       if metaval ~= 1 then
-         addobject(heldtile,math.floor(love.mouse.getX()/  tilesize  ),math.floor(love.mouse.getY()/  tilesize  ), helddir )
-       else
-         addobject("text_"..heldtile,math.floor(love.mouse.getX()/  tilesize  ),math.floor(love.mouse.getY()/  tilesize  ), helddir )
+    local obx, oby = math.floor(love.mouse.getX()/  tilesize  ),math.floor(love.mouse.getY()/  tilesize  )
+     if obx > 0 and obx < (levelx - 1) and oby > 0 and oby < levely and not love.mouse.isDown(2) then
+       if dot then
+         love.audio.play(love.audio.newSource("sound/place.wav","static"))
+         if metaval ~= 1 then
+           addobject(heldtile,obx,oby, helddir )
+         else
+           addobject("text_"..heldtile,obx,oby, helddir )
+         end
        end
      end
 

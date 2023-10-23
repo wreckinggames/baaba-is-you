@@ -3,8 +3,8 @@ love.filesystem.load("conditions.lua")()
 function gettiles(directiontype,xpos,ypos,tileamount)
   local finalobjects = {}
  for e,f in ipairs(Objects) do
-   local oxpos = math.floor(f.x/tilesize)
-   local oypos = math.floor(f.y/tilesize)
+   local oxpos = f.tilex
+   local oypos = f.tiley
    if(oxpos-xpos == tileamount) and (oypos == ypos) and (directiontype == "right") then
     table.insert(finalobjects,f)
    end
@@ -66,13 +66,35 @@ function objectswithverb(verb, p)
 return objs1
 end
 
+function getplayers()
+ local objs1 = {}
+ for i,ob in ipairs(rules) do
+   local property = ob[3]
+    if property == "you" or property == "you2" and (ob[2] == "is")then
+      for j,job in ipairs(Objects) do
+
+       if matches(ob[1], job) then
+          if not isruleblocked(job.id, "is", property) then
+            if testcond(ob[4], job.id, p) then
+             table.insert(objs1,job)
+            end
+          end
+        end
+      end
+    end
+
+ end
+
+return objs1
+end
+
 
 function on(thisobj)
   local finalobjs2 = {}
-  local xpos1 = thisobj.x
-    local ypos1 = thisobj.y
+  local xpos1 = thisobj.tilex
+    local ypos1 = thisobj.tiley
     for a,b in ipairs(Objects) do
-  if(xpos1 == b.x) and (ypos1 == b.y) then
+  if(xpos1 == b.tilex) and (ypos1 == b.tiley) then
     if not (b==thisobj)then
    table.insert(finalobjs2,b)
     end
@@ -115,19 +137,25 @@ function isruleblocked(id,verb,prop)
   return false
 
 end
-function ruleexists(id, noun,verb,property)
+function ruleexists(id, noun,verb,property, feeling,power)
 
   if isruleblocked(id, verb, property) then
     return false
   end
 
-  local unit = Objects[id]
+  local unit = {}
+  if id ~= "icon" then
+    unit = Objects[id]
+  else
+    unit = "icon"
+  end
+
   for i,ob in ipairs(rules) do
 
      if matches(ob[3], property, true) and (ob[2] == verb)then
 
         if matches(ob[1], unit) then
-           if testcond(ob[4], id) then
+           if testcond(ob[4], id, power, feeling) then
             return true
            end
 
@@ -167,13 +195,13 @@ end
 function hasrule(name1,verb1,prop1)
   local finals = {}
   for useless,getrule in ipairs(rules) do
-   if matches(getrule[1], name1, true)then
-    if(getrule[2] == verb1)then
-     if matches(getrule[3], prop1, true)then
-        return true
+     if matches(getrule[1], name1, true)then
+      if(getrule[2] == verb1)then
+       if matches(getrule[3], prop1, true)then
+          return true
+       end
+      end
      end
-    end
-   end
   end
   return false
 end
@@ -229,9 +257,13 @@ function letters_to_text(letters, start)
 
       local obj = Objects[v]
       local gsv = getspritevalues(obj.name)
+      local name = realname(obj.name)
+      if obj.name == "sqrt9" then
+        name = "3"
+      end
 
       if gsv.type == 5 then
-        str = str .. realname(obj.name)
+        str = str .. name
         table.insert(letterobjs, v)
       else
         break
@@ -240,7 +272,9 @@ function letters_to_text(letters, start)
     end
 
   end
-
+  if alias[str] ~= nil then
+    str = alias[str]
+  end
   return getspritevalues("text_" .. str), letterobjs
 
 end
@@ -280,7 +314,7 @@ function Parser:makeFirstWords()
           table.insert(self.words, {ob.id, "down"})
         end
 
-        if type == 0 then
+        if type == 0 or type == 9 then
 
           local lft = gettiles("left",ob.tilex,ob.tiley,1)
           local ups = gettiles("up",ob.tilex,ob.tiley,1)
@@ -288,32 +322,50 @@ function Parser:makeFirstWords()
           local lft2 = gettiles("left",ob.tilex,ob.tiley,2)
           local ups2 = gettiles("up",ob.tilex,ob.tiley,2)
 
+          local lft3 = gettiles("left",ob.tilex,ob.tiley,3)
+          local ups3 = gettiles("up",ob.tilex,ob.tiley,3)
+
           local rt = gettiles("right",ob.tilex,ob.tiley,1)
 
           local blft, bup = false,false
 
           local hasand = false
+          local istext_and = false
           for i, j in ipairs(lft) do
-            if j.type == 3 then
+            if j.type == 3 or (j.type == 9 and type ~= 9) then
               blft = true
-            elseif j.type == 4 or j.type == 7 then
+            elseif j.type == 4 or (j.type == 7 and j.name ~= "text_feeling") then
               hasand = true
+            end
+          end
+          for i, j in ipairs(lft3) do
+            if hasand and j.type == 9 then
+              istext_and = true
+              break
             end
           end
           for i, j in ipairs(lft2) do
-            if hasand and j.type == 0 then
+            if hasand and (j.type == 0 or ((istext_and) and istext_or_word(j.name))) then
               blft = true
             end
           end
+          hasand = false
+          istext_and = false
           for i, j in ipairs(ups) do
-            if j.type == 3 then
+            if j.type == 3 or (j.type == 9 and type ~= 9) then
               bup = true
-            elseif j.type == 4 or j.type == 7 then
+            elseif j.type == 4 or (j.type == 7 and j.name ~= "text_feeling") then
               hasand = true
             end
           end
+          for i, j in ipairs(lft3) do
+            if hasand and j.type == 9 then
+              istext_and = true
+              break
+            end
+          end
           for i, j in ipairs(ups2) do
-            if hasand and j.type == 0 then
+            if hasand and (j.type == 0 or ((istext_and) and istext_or_word(j.name))) then
               bup = true
             end
           end
@@ -391,6 +443,13 @@ function Parser:ParseRules()
     local letterpass = 0
     local thisletterword = ""
     local thisletterids = {}
+    local textof = false
+    local doublepass = false
+    local letterarg = false
+
+    local isif = false
+    local if_rule = {}
+    local if_ids = {}
 
     for ind, thing in ipairs(j) do
 
@@ -398,20 +457,30 @@ function Parser:ParseRules()
       local name = realname(obj.name)
       local type = obj.type
 
+
       local next = Objects[j[ind + 1]]
 
+      if obj.name == "sqrt9" then
+        name = "3"
+      end
+
       -- handle letters
-      if type == 5 and not (letterpass > 0) then
+      if type == 5 and not (letterpass > 0) and not textof and not letterarg then
+
         thisletterword = thisletterword .. name
         table.insert(thisletterids, thing)
         letterpass = 1
         local found = false
 
-        local gsv = getspritevalues("text_" .. thisletterword)
+        local finalword = thisletterword .. ""
+        if alias[finalword] ~= nil then
+          finalword = alias[finalword]
+        end
+        local gsv = getspritevalues("text_" .. finalword)
 
         if not gsv.nope and gsv.type ~= 5 then
           found = true
-          name = thisletterword
+          name = finalword
           type = gsv.type
           letterpass = 0
           for ____, letterid in ipairs(thisletterids) do
@@ -426,6 +495,7 @@ function Parser:ParseRules()
         end
 
       end
+      letterarg = false
 --[[      if next ~= nil and next.type ~= 5 and thisletterword ~= "" then
         local found = false
         for i, o in ipairs(images) do
@@ -449,7 +519,9 @@ function Parser:ParseRules()
         thisletterword = ""
       end]]
 
-      if pass then
+      if doublepass then
+        doublepass = false
+      elseif pass then
         pass = false
         table.insert(ids, thing)
       -- Lonely
@@ -464,17 +536,32 @@ function Parser:ParseRules()
           table.insert(rule_conds, {name, {}})
           table.insert(ids, thing)
           stage = 0
+        elseif type == 9 then
+          textof = true
+          stage = 0
+          table.insert(ids, thing)
         else
           stop = true
         end
       -- X
       elseif (stage == 0) then
-        if type == 0 then
-          table.insert(ids, thing)
-          table.insert(rule_targets, name)
-          stage = 1
+        if not textof then
+          if type == 0 then
+            table.insert(ids, thing)
+            table.insert(rule_targets, name)
+            stage = 1
+          elseif type == 9 then
+            textof = true
+            stage = 0
+            table.insert(ids, thing)
+          else
+            stop = true
+          end
         else
-          stop = true
+          table.insert(ids, thing)
+          table.insert(rule_targets, "text_" .. name)
+          stage = 1
+          textof = false
         end
       -- IS X / X AND Y IS Z / x ON Y IS Z
       elseif (stage == 1) then
@@ -490,6 +577,7 @@ function Parser:ParseRules()
             local success = false
             local asletter = false
             local lettername = ""
+            local istextof = false
             for i, z in ipairs(accepted_args) do
 
               if (next.type == z) then
@@ -503,21 +591,31 @@ function Parser:ParseRules()
                   lettername = realname(lettergsv.name)
                   break
                 end
+              elseif (next.type == 9) then
+                local next2 = Objects[j[ind + 2]]
+                if next2 ~= nil then
+                  success = true
+                  istextof = "text_" .. realname(next2.name)
+                end
               end
-
             end
 
             if success then
               table.insert(ids, thing)
-              if asletter == false then
+              if asletter == false and istextof == false then
                 table.insert(ids, next.id)
                 table.insert(rule_subjects, {name, realname(next.name)})
-              else
+              elseif istextof == false then
                 for a, b in ipairs(asletter) do
                   table.insert(ids, b)
                 end
                 letterpass = #asletter - 1
                 table.insert(rule_subjects, {name, lettername})
+              else
+                table.insert(ids, j[ind + 1])
+                table.insert(ids, j[ind + 2])
+                table.insert(rule_subjects, {name, istextof})
+                doublepass = true
               end
 
               pass = true
@@ -545,9 +643,11 @@ function Parser:ParseRules()
           local success = false
           local asletter = false
           local lettername = ""
+          local istextof = false
+
           for i, z in ipairs(accepted_args) do
 
-            if (next.type == z) then
+            if (next.type == z) and not (z == 5) then
               success = true
               break
             elseif (next.type == 5) then
@@ -555,8 +655,17 @@ function Parser:ParseRules()
               if lettergsv.type == z then
                 success = true
                 asletter = letterids
+                if(z == 5) then
+                  letterarg = true
+                end
                 lettername = realname(lettergsv.name)
                 break
+              end
+            elseif (next.type == 9) then
+              local next2 = Objects[j[ind + 2]]
+              if next2 ~= nil then
+                success = true
+                istextof = "text_" .. realname(next2.name)
               end
             end
 
@@ -564,15 +673,20 @@ function Parser:ParseRules()
 
           if success then
             table.insert(ids, thing)
-            if asletter == false then
+            if asletter == false and istextof == false then
               table.insert(ids, next.id)
               table.insert(rule_conds, {name, {realname(next.name)}})
-            else
+            elseif istextof == false then
               for a, b in ipairs(asletter) do
                 table.insert(ids, b)
               end
-              letterpass = #asletter - 1
+              letterpass = (#asletter - 1)
               table.insert(rule_conds, {name, {lettername}})
+            else
+              table.insert(ids, j[ind + 1])
+              table.insert(ids, j[ind + 2])
+              table.insert(rule_conds, {name, {istextof}})
+              doublepass = true
             end
 
             pass = true
@@ -606,7 +720,7 @@ function Parser:ParseRules()
                 local success = false
                 local asletter = false
                 local lettername = ""
-
+                local istextof = false
                 for i, z in ipairs(accepted_args) do
 
                   if (next.type == z) then
@@ -620,21 +734,31 @@ function Parser:ParseRules()
                       lettername = realname(lettergsv.name)
                       break
                     end
+                  elseif (next.type == 9) then
+                    local next2 = Objects[j[ind + 2]]
+                    if next2 ~= nil then
+                      success = true
+                      istextof = "text_" .. realname(next2.name)
+                    end
                   end
 
                 end
 
                 if success then
                   table.insert(ids, thing)
-                  if asletter == false then
+                  if asletter == false and istextof == false then
                     table.insert(ids, next.id)
                     table.insert(rule_subjects, {last_rule_subject, realname(next.name)})
-                  else
+                  elseif istextof == false then
                     for a, b in ipairs(asletter) do
                       table.insert(ids, b)
                     end
                     letterpass = #asletter - 1
                     table.insert(rule_subjects, {last_rule_subject, lettername})
+                  else
+                    table.insert(ids, next.id)
+                    table.insert(ids, j[ind + 2])
+                    table.insert(rule_subjects, {last_rule_subject, istextof})
                   end
 
                   pass = true
@@ -650,6 +774,25 @@ function Parser:ParseRules()
 
 
 
+          elseif type == 14 then
+            if not isif then
+              table.insert(ids, thing)
+              isif = true
+              if_rule = {{}, {}, {}}
+              for aaa, bbb in ipairs(rule_subjects) do
+                table.insert(if_rule[1], bbb)
+              end
+              for aaa, bbb in ipairs(rule_targets) do
+                table.insert(if_rule[2], bbb)
+              end
+              for aaa, bbb in ipairs(rule_conds) do
+                table.insert(if_rule[3], bbb)
+              end
+              stage = 0
+            else
+              stop = true
+            end
+
           else
             stop = true
           end
@@ -658,11 +801,24 @@ function Parser:ParseRules()
         end
       end
 
+      if isif and not stop and name ~= "if" then
+        table.insert(if_ids, thing)
+      end
+
       if ind == #j then
         stop = true
       end
 
       if stop then
+
+        if isif then
+          if #(if_rule[1]) > 0 and #(if_rule[2]) > 0 and #rule_targets > 1 then
+            rule_subjects = if_rule[1]
+            rule_targets = if_rule[2]
+            rule_conds = if_rule[3]
+            table.insert(rule_conds, {"if", {if_ids}})
+          end
+        end
         debug = ""
         local made_sentence = false
         for m, n in ipairs(rule_targets) do
@@ -673,10 +829,10 @@ function Parser:ParseRules()
           end
         end
         if made_sentence then
-        for k,l in ipairs(ids) do
-          Objects[l]._active = true
+          for k,l in ipairs(ids) do
+            Objects[l]._active = true
+          end
         end
-      end
 
         break
 
@@ -688,13 +844,55 @@ function Parser:ParseRules()
 end
 
 function Parser:AddRules()
+  local ifrules = {}
+  for i, j in ipairs(self.parsed_rules) do
+    if #j[4] > 0 and j[4][#j[4]][1] == "if" then
+      table.insert(ifrules, j[4][#j[4]][2][1])
+    end
+  end
+
   local blockedrules = {}
   for i, j in ipairs(self.parsed_rules) do
-    table.insert(rules, j)
+    local notif = true
+    if #ifrules > 0 and j[5] ~= nil then
+      local hasif = false
+      for a, b in ipairs(ifrules) do
+        local isinif = 0
+        for c, d in ipairs(b) do
+          if j[5][c] == d then
+            isinif = isinif + 1
+          end
+        end
+
+        if isinif == #b then
+          hasif = true
+          break
+        end
+      end
+      if hasif then
+        notif = false
+      end
+    end
+    if notif then
+      table.insert(rules, j)
+      if j[3] == "random" then
+        if j[2] == "write" then
+          table.remove(rules, #rules)
+        end
+        table.insert(rules, {j[1], j[2], random_prop(), j[4], j[5]})
+      end
+    end
+    local valid = false
     for k, cond in ipairs(j[4]) do
       if cond[1] == "no" then
-        table.insert(blockedrules, j)
+        valid = true
+      else
+        valid = false
+        break
       end
+    end
+    if valid then
+      table.insert(blockedrules, j)
     end
   end
 
@@ -758,6 +956,30 @@ function Parser:Debug()
 
   end
 end
+
+function random_prop()
+  return string_prop_list[math.ceil(math.random(0.01,#string_prop_list))]
+end
+
+function make_prop_list()
+  for i, j in ipairs(objectValues) do
+    if j.type == 2 and j.name ~= "text_random" and j.name ~= nil then
+      table.insert(string_prop_list, string.sub(j.name,6))
+    end
+  end
+
+
+end
+
+function is_prop(name)
+  for i, j in ipairs(string_prop_list) do
+    if name == j then
+      return true
+    end
+  end
+  return false
+end
+
 
 --[[
 TODO:

@@ -23,6 +23,8 @@ function drawborders()
     j = j + 1
   end
   local dx, dy = (levelx-1)*tilesize  + x_offset + tilesize, levely*tilesize  + y_offset + tilesize
-  love.graphics.rectangle("fill", dx, 0, 1280, 820)
-  love.graphics.rectangle("fill", 0, dy, 1280, 820)
+
+  local width, height = love.graphics.getDimensions()
+  love.graphics.rectangle("fill", dx, 0, width, height)
+  love.graphics.rectangle("fill", 0, dy, width, height)
 end
