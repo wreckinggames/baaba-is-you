@@ -688,7 +688,7 @@ function love.mousepressed(x, y, button, isTouch)
 end
 
 function love.filedropped(file)
-	filename = file:getFilename()
+	filename = file:getFilename():gsub("\\", "/")
 	ext = filename:match("%.%w+$")
 
 	if ext == ".png" or ext == ".jpg" then
