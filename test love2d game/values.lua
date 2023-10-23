@@ -931,12 +931,13 @@ objectValues = {
     sprite = "button",
     color = {1,1}
   },
+  --[[
   {
     name = "text_possess",
     sprite = "text_possess",
     color = {6,4},
     type = 2
-  },
+  },]]
   {
     name = "text_fungus",
     sprite = "text_fungus",
@@ -1049,6 +1050,7 @@ objectValues = {
     name = "cliff",
     sprite = "cliff",
     color = {2,4},
+    rotate = 5
   },
   {
     name = "text_sun",
@@ -1634,8 +1636,533 @@ objectValues = {
     sprite = "cursor",
     color = {6,4}
   },
+  {
+    name = "text_pull",
+    sprite = "text_pull",
+    color = {2,3},
+    type = 2
+  },
+  {
+    name = "all",
+    sprite = "all",
+    color = {1,2},
+    rotate = 4
+  },
+  {
+    name = "text",
+    sprite = "text",
+    color = {4,4}
+  },
+  {
+    name = "icon",
+    sprite = "icon",
+    color = {1,1}
+  },
+  {
+    name = "group",
+    sprite = "group",
+    color = {5,1},
+    rotate = 4
+  },
+  {
+    name = "clipboard",
+    sprite = "clipboard",
+    color = {1,2}
+  },
+  {
+    name = "this",
+    sprite = "this",
+    color = {1,2}
+  },
+  {
+    name = "text_monster",
+    sprite = "text_monster",
+    color = {3,1},
+    type = 0
+  },
+  {
+    name = "monster",
+    sprite = "monster",
+    color = {3,1},
+    rotate = 4
+  },
+  {
+    name = "text_monitor",
+    sprite = "text_monitor",
+    color = {1,3},
+    type = 0
+  },
+  {
+    name = "monitor",
+    sprite = "monitor",
+    color = {1,3}
+  },
+  {
+    name = "text_question",
+    sprite = "text_question",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "question",
+    sprite = "question",
+    color = {1,2}
+  },
+  {
+    name = "text_question",
+    sprite = "text_question",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "question",
+    sprite = "question",
+    color = {1,2}
+  },
+  {
+    name = "text_but",
+    sprite = "text_but",
+    color = {1,2},
+    type = 7
+  },
+  {
+    name = "text_correct",
+    sprite = "text_correct",
+    color = {4,1},
+    type = 0
+  },
+  {
+    name = "correct",
+    sprite = "correct",
+    color = {4,1}
+  },
+  {
+    name = "text_horse",
+    sprite = "text_horse",
+    color = {2,4},
+    type = 0
+  },
+  {
+    name = "horse",
+    sprite = "horse",
+    color = {2,4},
+    rotate = 4
+  },
+  {
+    name = "text_battery",
+    sprite = "text_battery",
+    color = {5,1},
+    type = 0
+  },
+  {
+    name = "battery",
+    sprite = "battery",
+    color = {5,1}
+  },
+  {
+    name = "text_staple",
+    sprite = "text_staple",
+    color = {1,3},
+    type = 0
+  },
+  {
+    name = "staple",
+    sprite = "staple",
+    color = {1,3}
+  },
+  {
+    name = "text_mountain",
+    sprite = "text_mountain",
+    color = {6,5},
+    type = 0
+  },
+  {
+    name = "mountain",
+    sprite = "mountain",
+    color = {6,5}
+  },
+  {
+    name = "text_textof",
+    sprite = "text_textof",
+    color = {4,4},
+    type = 9
+  },
+  {
+    name = "text_uncopy",
+    sprite = "text_uncopy",
+    color = {7,1},
+    type = 2
+  },
+  {
+    name = "text_incorrect",
+    sprite = "text_incorrect",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "incorrect",
+    sprite = "incorrect",
+    color = {1,1}
+  },
+  {
+    name = "text_heavy",
+    sprite = "text_heavy",
+    color = {7,4},
+    type = 2
+  },
+  {
+    name = "text_oneway",
+    sprite = "text_oneway",
+    color = {5,1},
+    type = 2
+  },
+  {
+    name = "text_reset",
+    sprite = "text_reset",
+    color = {6,5},
+    type = 2
+  },
+  {
+    name = "text_set",
+    sprite = "text_set",
+    color = {6,5},
+    type = 2
+  },
+  {
+    name = "text_shift",
+    sprite = "text_shift",
+    color = {6,1},
+    type = 2
+  },
+  --[[
+  {
+    name = "text_word",
+    sprite = "text_word",
+    color = {1,2},
+    type = 2
+  },]]
+  {
+    name = "text_link",
+    sprite = "text_link",
+    color = {4,1},
+    type = 2
+  },
+  {
+    name = "text_big",
+    sprite = "text_big",
+    color = {3,1},
+    type = 2
+  },
+  {
+    name = "text_random",
+    sprite = "text_random",
+    color = {4,2},
+    type = 2
+  },
+  {
+    name = "text_axe",
+    sprite = "text_axe",
+    color = {6,1},
+    type = 0
+  },
+  {
+    name = "axe",
+    sprite = "axe",
+    color = {6,1}
+  },
+  {
+    name = "text_pick",
+    sprite = "text_pick",
+    color = {6,1},
+    type = 0
+  },
+  {
+    name = "pick",
+    sprite = "pick",
+    color = {6,1}
+  },
+  {
+    name = "text_sword",
+    sprite = "text_sword",
+    color = {6,1},
+    type = 0
+  },
+  {
+    name = "mathdotsinxword",
+    sprite = "mathdotsinxword",
+    color = {6,1}
+  },
+  {
+    name = "text_mathdotsinxword",
+    sprite = "text_mathdotsinxword",
+    type = 0,
+    color = {6,1}
+  },
+  {
+    name = "sword",
+    sprite = "sword",
+    color = {6,1}
+  },
+  {
+    name = "text_57",
+    sprite = "text_57",
+    color = {3,3},
+    type = 0
+  },
+  {
+    name = "57",
+    sprite = "57 copy",
+    color = {3,3}
+  },
+  {
+    name = "text_57",
+    sprite = "text_57",
+    color = {3,3},
+    type = 0
+  },
+  {
+    name = "log",
+    sprite = "log",
+    color = {2,4}
+  },
+  {
+    name = "text_log",
+    sprite = "text_log",
+    color = {2,4},
+    type = 0
+  },
+  {
+    name = "text_starts",
+    sprite = "text_starts",
+    color = {1,2},
+    type = 7,
+    args = {5,0, 1, 2, 3, 4 ,6.7,7,'57yw ruwr '}
+  },
+  {
+    name = "text_contains",
+    sprite = "text_contains",
+    color = {1,2},
+    type = 7,
+    args = {5,0, 1, 2, 3, 4 ,6.7,7,'57yw ruwr '}
+  },
+  {
+    name = "text_ends",
+    sprite = "text_ends",
+    color = {1,2},
+    type = 7,
+    args = {5,0, 1, 2, 3, 4 ,6.7,7,'57yw ruwr '}
+  },
+  {
+    name = "text_without",
+    sprite = "text_without",
+    color = {1,2},
+    type = 7,
+  },
+  {
+    name = "text_feeling",
+    sprite = "text_feeling",
+    color = {1,2},
+    type = 7,
+    args = {2}
+  },
+  {
+    name = "text_path",
+    sprite = "text_path",
+    color = {2,3},
+    type = 2,
+  },
+  {
+    name = "text_right",
+    sprite = "text_right",
+    color = {6,5},
+    type = 2,
+  },
+  {
+    name = "text_left",
+    sprite = "text_left",
+    color = {6,5},
+    type = 2,
+  },
+  {
+    name = "text_down",
+    sprite = "text_down",
+    color = {6,5},
+    type = 2,
+  },
+  {
+    name = "text_hand",
+    sprite = "text_hand",
+    color = {6,5},
+    type = 0
+  },
+  {
+    name = "hand",
+    sprite = "hand",
+    color = {6,5},
+    rotate = 4
+  },
+  {
+    name = "text_eye",
+    sprite = "text_eye",
+    color = {6,5},
+    type = 0
+  },
+  {
+    name = "eye",
+    sprite = "eye",
+    color = {6,5},
+    rotate = 4
+  },
+  {
+    name = "text_sqrt9",
+    sprite = "text_sqrt9",
+    color = {7,3},
+    type = 0
+  },
+  {
+    name = "sqrt9",
+    sprite = "sqrt9",
+    color = {7,3},
+    type = 5
+  },
+  {
+    name = "text_file",
+    sprite = "text_file",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "file",
+    sprite = "file",
+    color = {7,3}
+  },
+  {
+    name = "text_ba",
+    sprite = "text_ba",
+    type = 5,
+    color = {4,4}
+  },
+  {
+    name = "text_chair",
+    sprite = "text_chair",
+    type = 0,
+    color = {2,3}
+  },
+  {
+    name = "chair",
+    sprite = "chair",
+    color = {2,3}
+  },
+  {
+    name = "text_3dollars",
+    sprite = "text_3dollars",
+    type = 0,
+    color = {5,1}
+  },
+  {
+    name = "3dollars",
+    sprite = "3dollars",
+    color = {5,1}
+  },
+  {
+    name = "text_ring",
+    sprite = "text_ring",
+    type = 0,
+    color = {3,1}
+  },
+  {
+    name = "ring",
+    sprite = "ring",
+    color = {3,1}
+  },
+  {
+    name = "text_pink",
+    sprite = "text_pink",
+    type = 2,
+    color = {4,4}
+  },
+  {
+    name = "lemon",
+    sprite = "lemon",
+    color = {2,1}
+  },
+  {
+    name = "text_lemon",
+    sprite = "text_lemon",
+    color = {2,1},
+    type = 0
+  },
+  {
+    name = "prize",
+    sprite = "prize",
+    color = {1,1}
+  },
+  {
+    name = "text_prize",
+    sprite = "text_prize",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "car",
+    sprite = "car",
+    color = {1,1},
+    rotate = 4
+  },
+  {
+    name = "text_car",
+    sprite = "text_car",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "text_xnopyt",
+    sprite = "text_xnopyt",
+    color = {1,2},
+    type = 2
+  },
+  {
+    name = "jsdhgous",
+    sprite = "jsdhgous",
+    color = {2,1},
+    rotate = -999
+  },
+  {
+    name = "text_jsdhgous",
+    sprite = "text_jsdhgous",
+    color = {2,1},
+    type = 0
+  },
+  {
+    name = "text_hide",
+    sprite = "text_hide",
+    color = {6,3},
+    type = 2
+  },
+  {
+    name = "seastar",
+    sprite = "seastar",
+    color = {2,1},
+  },
+  {
+    name = "text_seastar",
+    sprite = "text_seastar",
+    color = {2,1},
+    type = 0
+  },
+  {
+    name = "lock",
+    sprite = "lock",
+    color = {1,4},
+  },
+  {
+    name = "text_lock",
+    sprite = "text_lock",
+    color = {1,4},
+    type = 0
+  },
 }
-local bonusletters = {"c","d","e","f","g","h","j","k","l","m","n","p","r","t","v","w","x","z"}
+local bonusletters = {"c","d","e","f","g","h","j","k","l","m","n","p","r","t","v","w","x","z","upsilon","0","1","2","3","4","5","6","7","8","9","ch","dollars"}
 for i, j in ipairs(bonusletters) do
   table.insert(objectValues, {
     name = "text_" .. j,
@@ -1644,3 +2171,10 @@ for i, j in ipairs(bonusletters) do
     type = 5
   })
 end
+alias = {}
+alias["wupsilong"] = "wug"
+alias["sqrt9dollars"] = "3dollars"
+alias["water"] = "whater"
+alias["walter"] = "whater"
+alias["hrrkrkrkrwpfrbrbrbrlablblblblblblblwhitooap"] = "xnopyt"
+alias["aaaaaaajjjjjjjjj"] = "xnopyt"

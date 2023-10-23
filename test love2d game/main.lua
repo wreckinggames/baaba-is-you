@@ -9,9 +9,15 @@ active = false
 local enabledebug = false
  winning = false
  local redraw_objects = true
+
+
 function love.load()
 
   --love.audio.play(love.audio.newSource("sound/baaba.wav","static"))
+  music = love.audio.newSource("sound/baaba.wav","static")
+  music:setLooping(true)
+  music:play()
+  music:setVolume(0.3)
 
   gamestate = "menu"
   levelx = 24
@@ -20,24 +26,33 @@ function love.load()
   y_offset = 0
   wewinning = false
    love.graphics.setDefaultFilter("nearest", "nearest", 1)
-   love.window.setMode(1280,820)
+   love.window.setMode(1280,820,{resizable = true})
   DBG = ""
   draw = true
   done = false
   move = false
   writethese = {}
   hideui = true
+  levelmusic = 1
+  musiclist = {"default", "baaba", "submar", "the song ever", "burning", "nothing"}
   Palleteimage = love.graphics.newImage("sprite/testpalette.png")
   textmeta = love.graphics.newImage("sprite/textMeta.png")
   blockerimg = love.graphics.newImage("sprite/blocker.png")
   miscsprites = {}
   miscsprites["play"] = love.graphics.newImage("graphics/playbutton.png")
   miscsprites["flag"] = love.graphics.newImage("sprite/flag.png")
-  all_palettes = {"testpalette", "brighter", "AAAAA", "table", "spaceeee", "oooh"}
+  miscsprites["note"] = love.graphics.newImage("graphics/note.png")
+  miscsprites["logo"] = love.graphics.newImage("graphics/baaba_logo.png")
+  all_palettes = {"testpalette", "brighter", "AAAAA", "table", "spaceeee", "oooh", "orang", "reswapped", "burning", "yelly","reddy"}
   palette_id = 1
+  loop_detector = 0
+  theloop = false
+
+  stupid_music_timer = -1
+  the_level_is_gone = false
   --leveldata = "testaaa={"
   heldtile = ""
-  hedldir = "right"
+  helddir = "right"
   changedicon = {"",false}
   to = false
   tilesize = 48
@@ -46,7 +61,10 @@ function love.load()
  ingroup = {}
  MovingObjects = {}
  rules = {}
+ string_prop_list = {}
  currenticon = "baaba"
+
+
  changeicon = love.window.setIcon(love.image.newImageData("sprite/baaba-right.png"))
  keys = {"a","d","w","s","space","left","right","up","down"}
 images=
@@ -61,7 +79,11 @@ images=
 {"blossom", "text_blossom", "calendar", "text_calendar", "planet", "text_planet", "card", "text_card", "jar", "text_jar", "satelite", "text_satelite", "text_collect", "text_select", "pixel", "text_pixel","text_auto","text_arc","arc","text_dot","dot","text_guy","guy"},
 {"text_cursor","cursor","text_gburble","gburble","text_old", "text_no","lever","text_lever","line","text_line","text_still","text_fall","wug","text_wug", "text_near", "text_above", "text_below", "fiiiiire", "text_fiiiiire","fish","text_fish","bell","text_bell"},
 {"orb","text_orb","fan","text_fan","gem","text_gem","bucket","text_bucket","turtle","text_turtle","lim","text_lim","bananas","text_bananas","text_eat", "text_a", "text_b", "text_c", "text_d","text_e","text_f","text_g","text_h"},
-{"text_i","text_j","text_k","text_l","text_m","text_n","text_o","text_p","text_r","text_s","text_t","text_u","text_v","text_w","text_x","text_y","text_z"} }
+{"text_i","text_j","text_k","text_l","text_m","text_n","text_o","text_p","text_r","text_s","text_t","text_u","text_v","text_w","text_x","text_y","text_z", "text_pull", "eye", "text_eye", "all", "text", "group"},
+{ "clipboard", "icon", "this","monster","text_monster","monitor","text_monitor","question","text_question","text_uncopy","text_textof","text_but","mountain","text_mountain","correct","text_correct","horse","text_horse","battery","text_battery","staple","text_staple", "text_upsilon"},
+{"incorrect", "text_incorrect","text_heavy","text_oneway","text_link","text_shift","text_reset","text_set","text_big","text_random", "axe","text_axe","pick","text_pick","sword","text_sword","log","text_log","text_feeling","text_without","text_starts","text_contains","text_ends"},
+{"text_path","text_left","text_down","text_right","text_0","text_1","text_2","text_3","text_4","text_5","text_6","text_7","text_8","text_9","hand","text_hand","sqrt9","text_sqrt9","text_tele", "text_file","mathdotsinxword","text_mathdotsinxword","text_dollars"},
+{"3dollars","text_3dollars","text_pink","text_ba","ring","text_ring","text_ch","chair","text_chair","lemon","text_lemon","prize","text_prize","car","text_car","text_xnopyt","text_hide","jsdhgous","text_jsdhgous","seastar","text_seastar","lock","text_lock"} }
 
 require "ui"
 require "tool"
@@ -74,16 +96,20 @@ require "editor"
 
 baserules = {}
 
-table.insert(baserules,{"text","is","push",{}})
-table.insert(baserules,{"leevel","is","stop",{}})
-table.insert(baserules,{"cursor","is","select",{}})
-table.insert(baserules,{"line","is","path",{}})
+table.insert(baserules,{"text","is","push"})
+table.insert(baserules,{"leevel","is","stop"})
+table.insert(baserules,{"cursor","is","select"})
+table.insert(baserules,{"line","is","path"})
+--table.insert(baserules,{"57","is","defeat",{}})
 love.keyboard.setKeyRepeat(true)
 menu_load()
+make_prop_list()
 end
 
-
 function passturn()
+
+  loop_detector = 0
+  the_level_is_gone = false
 
   active = false
 
@@ -93,18 +119,36 @@ function passturn()
        unit.sprite =  unit.name .. "-" .. unit.dir
        --unit.color = getspritevalues(unit.name).color
      end
-     unit.tilex = math.floor(unit.x/tilesize)
-     unit.tiley = math.floor(unit.y/tilesize)
+     --[[unit.tilex = math.floor(unit.x/tilesize)
+     unit.tiley = math.floor(unit.y/tilesize)]]
      unit.small = 1
      unit.sleep = false
+     unit.hide = nil
      unit.old = false
      unit.blocked = false
+     unit.from_x = unit.x
+     unit.from_y = unit.y
+     unit.to_x = unit.x
+     unit.to_y = unit.y
+   end
+
+   local cb = love.system.getClipboardText()
+   for a, b in ipairs(rules) do
+     if b[3] == "uncopy" and (matches(b[1], cb, true) or (matches(b[1], "text_" .. cb, true) and is_prop(cb))) then
+       love.system.setClipboardText("oops!")
+     end
    end
 
    local issmall = objectswithproperty("small")
    for i,c in ipairs(issmall) do
      c.small = c.small / 2
      c.size = c.size / 2
+   end
+
+   local isbig = objectswithproperty("big")
+   for i,c in ipairs(isbig) do
+     c.small = c.small * 2
+     c.size = c.size * 2
    end
 
 
@@ -127,18 +171,7 @@ function passturn()
    end
 
     testmove()
-    rules = {}
-    Parser:init()
-    Parser:makeFirstWords()
-    Parser:MakeRules()
-    Parser:ParseRules()
-    rules = {}
-    for i,b in ipairs(baserules) do
-      table.insert(rules,b)
-    end
-    Parser:AddRules()
-    -- oh boy debugging
-    Parser:Debug()
+    parse_text()
 
     for i, j in ipairs(Objects) do
       j.small = 1
@@ -167,12 +200,43 @@ function passturn()
     end
 
     wewinning = canwin()
+    if the_level_is_gone then
+      destroylevel("LOOP!!!")
+      return
+    end
+
+    parse_text()
+    local rulesound = false
+    local unrulesound = false
+    for a, b in ipairs(Objects) do
+      if b.oldactive == false and b._active == true then
+        rulesound = true
+      end
+
+      if b.oldactive == true and b._active == false then
+        unrulesound = true
+      end
+
+      b.oldactive = b._active
+    end
+
+    if rulesound then
+      love.audio.play(love.audio.newSource("sound/rulemade.wav","static"))
+    elseif unrulesound then
+      love.audio.play(love.audio.newSource("sound/unrule.wav","static"))
+    end
+
+    if #getplayers() == 0 then
+      music:pause()
+    elseif not music:isPlaying() then
+      music:play()
+    end
 end
 
 
 function dotiling(j)
 
-
+  j.tiling = nil
     if getspritevalues(j.name).rotate == 5 then
 
 
@@ -214,11 +278,7 @@ function love.keypressed(key, scancode, isrepeat)
 
 if(editlevelname == false)then
 
-  if (key == "r") then
-    Objects = {}
-    loadlevel()
-  end
-  candoturn = true
+
   if ineditor then
     if(key == "x")then
    saveleveldata(levelname)
@@ -237,6 +297,11 @@ if(editlevelname == false)then
       loadPalette(all_palettes[palette_id])
 
       initui()
+    end
+    if key == "n" then
+      levelmusic = (levelmusic) % (#musiclist) + 1
+      playmusic(musiclist[levelmusic])
+      stupid_music_timer = 5
     end
     if key == "tab" then
       hideui = not hideui
@@ -268,6 +333,13 @@ if(editlevelname == false)then
       helddir = key
     end
 
+  else
+    if (key == "r") then
+      Objects = {}
+      wewinning = false
+      theloop = false
+      loadlevel()
+    end
   end
 
 end
@@ -282,6 +354,12 @@ end
 
 end
 function updatesprite(c)
+
+  if c.file ~= nil then
+    c.sprite = love.graphics.newImage(fileimages[c.file])
+    return
+    --return fileimages[c.file]
+  end
 
   local gsv = getspritevalues(c.name).rotate
   local csprite = c.name
@@ -313,7 +391,10 @@ function love.draw()
     return
   end
 
+
   if gamestate == "editor" then
+
+
 
   drawborders()
 
@@ -322,28 +403,82 @@ function love.draw()
     love.graphics.setBackgroundColor(palettecolors[1][5])
    for i,c in ipairs(Objects) do
 
+
+
      local t = palettecolors[c.color[1]]
      if(t ~= nil) and (t[c.color[2]] ~= nil)then
       love.graphics.setColor(t[c.color[2]])
         if c._active == false then
-          local a1 = { t[c.color[2]][1] * 0.5, t[c.color[2]][2] * 0.5, t[c.color[2]][3] * 0.5}
+          local a1 = { t[c.color[2]][1] * 0.46, t[c.color[2]][2] * 0.46, t[c.color[2]][3] * 0.54}
           love.graphics.setColor(a1)
         end
       end
 
-      if(c.active == true)then
+      if(c.active == true) and (c.hide ~= true)then
 
         local cx = c.x
         local cy = c.y
+
+
+
+
+        if c.size > 1 then
+          cx = cx - tilesize / 2
+          cy = cy - tilesize
+          if c.size > 2 then
+            local multval = 2
+            for asdf = 1, 7 do
+              if c.size > multval then
+                cx = cx - tilesize * multval / 2
+                cy = cy - tilesize * multval
+              else
+                break
+              end
+              multval = multval * 2
+            end
+          end
+        end
+
+        if c.size < 1 then
+          cx = cx + tilesize / 4
+          cy = cy + tilesize / 2
+          if c.size < 0.5 then
+            local multval = 0.5
+            for asdf = 1, 7 do
+              if c.size < multval then
+                cx = cx + tilesize * multval / 4
+                cy = cy + tilesize * multval / 2
+              else
+                break
+              end
+              multval = multval / 2
+            end
+          end
+        end
+        --[[
         if c.size < 1 then
           cx = cx + tilesize / 4
           cy = cy + tilesize / 2
         end
+        if c.size < 0.5 then
+          cx = cx + tilesize / 8
+          cy = cy + tilesize / 4
+        end
 
-        local xchange = -((c.sprite:getWidth() - 24) / 2) * (tilesize / 24)
-        local ychange = -((c.sprite:getHeight() - 24) / 2) * (tilesize / 24)
+        if c.size < 0.25 then
+          cx = cx + tilesize / 16
+          cy = cy + tilesize / 8
+        end]]
 
-          love.graphics.draw(c.sprite,cx + x_offset + xchange,cy + y_offset + ychange,0,c.size * (tilesize / 24))--love.graphics.draw(love.graphics.newImage("sprite/" .. c.sprite .. ".png") or love.graphics.newImage("sprite/error.png"),c.x,c.y,0,c.size)
+        if c.file == nil then
+          local xchange = -((c.sprite:getWidth() - 24) / 2) * (tilesize / 24)
+          local ychange = -((c.sprite:getHeight() - 24) / 2) * (tilesize / 24)
+          love.graphics.draw(c.sprite,cx + x_offset + xchange,cy + y_offset + ychange,0,c.size * (tilesize / 24))
+        else
+          love.graphics.draw(c.sprite,cx + x_offset,cy + y_offset,0,c.size * (tilesize / 24) * (24 / c.sprite:getHeight()))
+        end
+
+          --love.graphics.draw(love.graphics.newImage("sprite/" .. c.sprite .. ".png") or love.graphics.newImage("sprite/error.png"),c.x,c.y,0,c.size)
 
         love.graphics.setColor(1,1,1)
       end
@@ -352,7 +487,7 @@ function love.draw()
   --  love.graphics.print(math.floor(dist(c.x+c.size/2,c.y+c.size/2,love.mouse.getX(),love.mouse.getY())),c.x+c.size/4,c.y+10)
       love.graphics.setColor(1,0,0)
   --love.graphics.print()
-      if string.sub(c.name,1,10) == "text_text_" then
+      if string.sub(c.name,1,10) == "text_text_" and c.file == nil then
         love.graphics.setColor(1,0,0.5)
         love.graphics.draw(textmeta,c.x + x_offset,c.y + y_offset,0,c.size  * (tilesize / 24))
       end
@@ -393,9 +528,14 @@ function love.draw()
       end
    end
 
+   local width, height = love.graphics.getDimensions()
    if wewinning then
      love.graphics.setColor(1,1,1)
-    love.graphics.draw(love.graphics.newImage("graphics/you win.png"),300,300,0,1)
+    love.graphics.draw(love.graphics.newImage("graphics/you win.png"),width / 2 - 146,height / 2 - 90,0,2)
+   end
+   if theloop then
+     love.graphics.setColor(1,1,1)
+    love.graphics.draw(love.graphics.newImage("graphics/LOOP.png"),width / 2 - 146,height / 2 - 90,0,2)
    end
 
 
@@ -423,42 +563,107 @@ function love.draw()
            love.graphics.print(aa)]] --outputs something like "1. main.lua"
 
            -- Draw Editor Play button
+
            if ineditor then
              local csprite = miscsprites["play"]
              love.graphics.setColor(palettecolors[4][1])
-             love.graphics.draw(csprite,1200,730,0,2)
+             love.graphics.draw(csprite,width - 80,height - 90,0,2)
            else
              local csprite = miscsprites["flag"]
              love.graphics.setColor(palettecolors[1][1])
-             love.graphics.draw(csprite,1200,730,0,2)
+             love.graphics.draw(csprite,width - 80,height - 90,0,2)
+           end
+
+           if stupid_music_timer > 0 then
+             local csprite = miscsprites["note"]
+             love.graphics.setColor(palettecolors[7][5][1] * 0.2, palettecolors[7][5][2] * 0.2, palettecolors[7][5][3] * 0.3)
+             love.graphics.rectangle("fill", width - 130 - string.len(musiclist[levelmusic]) * 10 - 5, 51, string.len(musiclist[levelmusic]) * 10 + 109, 134)
+             love.graphics.rectangle("fill", width - 180, width - 151, 90, 90)
+             love.graphics.setColor(palettecolors[7][5][1] * 1.2, palettecolors[7][5][2] * 1.2, palettecolors[7][5][3] * 1.3)
+             love.graphics.draw(csprite,width - 80,95,0,1)
+             love.graphics.print(musiclist[levelmusic], width - 130 - string.len(musiclist[levelmusic]) * 10, 100, 0, 2)
            end
 
   end
   menu()
+  if gamestate == "menu" and menu_state == "main" then
+    local width, height = love.graphics.getDimensions()
+    local csprite = miscsprites["logo"]
+    love.graphics.setColor(1,1,1)
+    love.graphics.draw(csprite,width / 2 - 191,155,0,2)
+  end
 end
 
-
+delay = {left = 0, up = 0, down = 0, right = 0, space = 0, w = 0, a = 0, s = 0, d = 0}
+turntimer = 0
+delay_timer = 0.15
+turnkey = ""
 
 function love.update(delta)
+
   if not love.window.hasFocus() then
     return
   end
-  if candoturn then
+
+  if stupid_music_timer > 0 then
+    stupid_music_timer = stupid_music_timer - delta
+  end
+
+  turntimer = turntimer + delta
+
+
+  doturn = false
+  for i, j in ipairs(keys) do
+    if love.keyboard.isDown(j) and delay[j] <= 0 then
+      doturn = true
+      delay[j] = delay_timer
+      turnkey = j
+      break
+    end
+  end
+  for i, v in pairs(delay) do
+    if delay[i] > 0 then
+      delay[i] = v - delta
+    else
+      delay[i] = 0
+    end
+  end
+
+  if doturn and not (gamestate == "editor" and menu_state ~= "editor_test") then
     if newturn() then
       passturn()
     end
-    candoturn = false
   end
 
-  if gamestate == "editor" then
+  if gamestate == "editor" and menu_state ~= "editor_test" then
     handletilething()
   end
+  if #Objects > 0 then
+    for i, c in ipairs(Objects) do
+      if c.to_x ~= nil and c.to_y ~= nil then
+        if c.frame >= 0.07 then
+          c.x = c.tilex * tilesize
+          c.y = c.tiley * tilesize
+          c.to_x = nil
+          c.to_y = nil
+          c.frame = 0
+        else
+          c.x = (c.to_x) * (c.frame / 0.07) + (c.from_x) * (1 - (c.frame / 0.07) )
+          c.y = (c.to_y) * (c.frame / 0.07) + (c.from_y) * (1 - (c.frame / 0.07) )
+          c.frame = math.min(c.frame + delta, 0.07)
+        end
+      end
+    end
+  end
+
 end
 function dist(xa,ya,xb,yb)
 return math.sqrt((yb-ya)^2+(xb-xa)^2)
 end
 function love.mousepressed(x, y, button, isTouch)
-  if x > 1180 and y > 720 and x < 1260 and y < 780 then
+  local width, height = love.graphics.getDimensions()
+  --if x > 1180 and y > 720 and x < 1260 and y < 780 then
+  if x > width - 100 and y > height - 100 and x < width - 20 and y < height - 40 then
     if ineditor then
       loadlevel()
     else
@@ -473,12 +678,36 @@ function love.mousepressed(x, y, button, isTouch)
   if not ineditor then
         for i, j in ipairs(Objects) do
           if j.tilex == math.floor(love.mouse.getX()/ tilesize ) and j.tiley == math.floor(love.mouse.getY()/ tilesize ) then
+            turnkey = "No"
             passturn()
           end
         end
   end
 
 
+end
+
+function love.filedropped(file)
+	filename = file:getFilename()
+	ext = filename:match("%.%w+$")
+
+	if ext == ".png" or ext == ".jpg" then
+		file:open("r")
+		fileData = file:read("data")
+		file_img = love.image.newImageData(fileData)
+		--file_img = love.graphics.newImage(img)
+    _, file_name = filename:match("(/.*/)(.+)(%.)")
+    turnkey = "Absolutely Not"
+    passturn()
+	end
+  if ext == ".wav" or ext == ".mp3" or ext == ".ogg" then
+		file:open("r")
+		fileData = file:read("data")
+		--file_img = love.graphics.newImage(img)
+    _, file_name = filename:match("(/.*/)(.+)(%.)")
+    turnkey = "Nope"
+    passturn()
+	end
 end
 
 function makeobject(x,y,name,dir_,meta_)
@@ -488,6 +717,7 @@ function makeobject(x,y,name,dir_,meta_)
     obj.tiley = y
     obj.x = x*tilesize
     obj.y = y*tilesize
+    obj.frame = 0
     obj.name = name
         obj.type = getspritevalues(obj.name).type
         obj.color = getspritevalues(obj.name).color
@@ -502,6 +732,9 @@ function makeobject(x,y,name,dir_,meta_)
     obj.active = true
 
     obj.tiling = nil
+    obj.orig_x = x
+    obj.orig_y = y
+    obj.small = 1
     dotiling(obj)
 
     updatesprite(obj)
@@ -529,17 +762,45 @@ function removeunit(unit)
   table.remove(Objects,unit.id)
 end
 
+function destroylevel(type)
+  Objects = {}
+  the_level_is_gone = true
+  if type == "LOOP!!!" then
+    theloop = true
+  end
+end
+
+function parse_text()
+  rules = {}
+  Parser:init()
+  Parser:makeFirstWords()
+  Parser:MakeRules()
+  Parser:ParseRules()
+  rules = {}
+  for i,b in ipairs(baserules) do
+    local whyyyy = {}
+    if b[4] ~= nil then
+      for v, w in ipairs(b[4]) do
+        table.insert(whyyyy, w)
+      end
+    end
+    table.insert(rules,{b[1],b[2],b[3],whyyyy})
+  end
+  Parser:AddRules()
+  -- oh boy debugging
+  --Parser:Debug()
+end
+
 
 
 --[[
 plans
 
-implement you2, hop, and select, and add cursor
 collect: replaces "area clear".
 if you make blossom is collect,
 you get a blossom added to your inventory,
-and if yuo get any other object,
+and if you get any other object,
 you also get it added to your inventory.
-so you can collect doors or something
+so you can collect doors or something and it wont add an orb because orbs arent doors
 
 ]]

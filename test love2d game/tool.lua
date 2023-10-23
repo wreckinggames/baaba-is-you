@@ -19,7 +19,7 @@ function istext_or_word(name,noword_)
   end
   local noword = noword_ or false
   if(noword == false)then
-   return string.sub(name,1,5) == "text_"
+   return string.sub(name,1,5) == "text_" or name == "sqrt9"
   else
    return string.sub(name,1,5) == "text_"
   end
@@ -48,8 +48,13 @@ function matches(word, unit, justname_)
   local name = ""
   local id = -15
   if not justname then
-    name = unit.name
-    id = unit.id
+    if unit ~= "icon" then
+      name = unit.name
+      id = unit.id
+    else
+      name = "icon"
+      id = nil
+    end
   else
     name = unit
   end
@@ -81,6 +86,10 @@ function matches(word, unit, justname_)
   end
 
   if word == "all" and not istext_or_word(name, 1) then
+    return true
+  end
+
+  if word == "file" and id ~= -15 and unit.file ~= nil then
     return true
   end
 

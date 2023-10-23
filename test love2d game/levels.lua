@@ -1,7 +1,7 @@
 love.filesystem.load("values.lua")()
 function saveleveldata(getlvlname)
   local tempObjects = ""
-  local temp2 = "PALETTE:" .. palette .. "\nSIZE_X:" .. tostring(levelx) .. "\nSIZE_Y:" .. tostring(levely) .. "\n"
+  local temp2 = "PALETTE:" .. palette .. "\nSIZE_X:" .. tostring(levelx) .. "\nSIZE_Y:" .. tostring(levely) .. "\nMUSIC:" .. tostring(levelmusic) .. "\n"
   for gg,hh in ipairs(editor_curr_objects) do
   tempObjects = "{\nNAME:" .. hh.name .. "\nXPOS:" .. tostring(hh.tilex) .. "\nYPOS:" .. tostring(hh.tiley) .. "\nDIR:" .. tostring(hh.dir) .. "\n}\n"
   temp2 = temp2 .. tempObjects
@@ -50,6 +50,10 @@ function loadleveldata(levelnamee)
        end
        if string.sub(objdata,1,7) == "SIZE_Y:" then
          levely = tonumber(string.sub(objdata,8))
+       end
+       if string.sub(objdata,1,6) == "MUSIC:" then
+         levelmusic = tonumber(string.sub(objdata,7))
+         playmusic(musiclist[levelmusic])
        end
       else
      addobject(objnames, tonumber(objxs), tonumber(objys), objdirs)
