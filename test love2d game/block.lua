@@ -52,6 +52,9 @@ function startproperties()
     c.transformable = true
     c.customcolor = false
     c.hide = false
+    c.old = false
+    c.sleep = false
+    c.float = false
     if(c.name == "text_clipboard")then
       local found  = false
       for i,val in ipairs(objectValues)do
@@ -69,16 +72,19 @@ function startproperties()
     for a,b in ipairs(rules) do
       if  (b[1] == "icon") and (b[2] == "is") and testcond(b[4], "icon") then
         if love.filesystem.getInfo("sprite/" .. b[3] .. ".png",{}) ~= nil then
+          add_undo("iconchange", {oldicon = currenticon})
           local baseimage = love.image.newImageData("sprite/" .. b[3] .. ".png")
           local bcolor = getspritevalues(b[3]).color
           tint_icon(baseimage, bcolor)
           currenticon = b[3]
         elseif b[3] == "meta" and string.sub(currenticon, 1, 5) ~= "text_" then
+          add_undo("iconchange", {oldicon = currenticon})
           local baseimage = love.image.newImageData("sprite/text_" .. currenticon .. ".png")
           local bcolor = getspritevalues("text_" .. currenticon).color
           tint_icon(baseimage, bcolor)
           currenticon = "text_" .. currenticon
         elseif b[3] == "unmeta" and string.sub(currenticon, 1, 5) == "text_" then
+          add_undo("iconchange", {oldicon = currenticon})
           local baseimage = love.image.newImageData("sprite/" .. string.sub(currenticon, 6) .. ".png")
           local bcolor = getspritevalues(string.sub(currenticon, 6)).color
           tint_icon(baseimage, bcolor)
@@ -164,7 +170,15 @@ function startproperties()
       elseif c.name == "stone" or c.name == "text_stone" then
         c.color = {2,3}
         c.customcolor = true
+      elseif c.name == "bobert" or c.name == "text_bobert" then
+        c.color = {1.8e308,56 + 1}
+        c.customcolor = true
       end
+    end
+
+    local isfloat = objectswithproperty("float")
+    for i,c in ipairs(isfloat) do
+      c.float = true
     end
 
 
@@ -245,25 +259,65 @@ function findproperties()
        end
      end
 
- for f,g in ipairs(images) do
-    for a,b in ipairs(g) do
-  local isother = objectswithproperty(b)
-  for i,c in ipairs(isother) do
-  if(c.transformable == true) and b ~= "group" and b ~= "clipboard" and b ~= "text" and b ~= "file" then
-  c.name=b
-  c.sprite=b
-  c.color=getspritevalues(b).color
-  c.type = getspritevalues(b).type
-  c._active = true
-  c.file = nil
-  dotiling(c)
-  updatesprite(c)
-  end
-  end
-end
- end
- local dels = {}
- local iswrite = objectswithverb("write")
+     local converted = {}
+     --[[
+   for f,g in ipairs(images) do
+      for a,b in ipairs(g) do
+        local isother = objectswithproperty(b)
+        for i,c in ipairs(isother) do
+          if converted[c.id] == nil then
+            if(c.transformable == true) and b ~= "group" and b ~= "clipboard" and b ~= "text" and b ~= "file" then
+                add_undo("convert", {convert = c.name, convert_id = c.undo_id})
+                c.name=b
+                c.sprite=b
+                c.color=getspritevalues(b).color
+                c.type = getspritevalues(b).type
+                c._active = true
+                c.file = nil
+                converted[c.id] = true
+                dotiling(c)
+                updatesprite(c)
+              end
+            else
+              makeobject(c.tilex,c.tiley,b,c.dir)
+            end
+         end
+      end
+   end]]
+
+   for i, rule in ipairs(rules) do
+     local b = rule[3]
+     if rule[2] == "is" and getspritevalues("text_" .. b).type == 0 and b ~= "group" and b ~= "text" and b ~= "file" and b ~= rule[1] then
+       for a, c in ipairs(Objects) do
+         if matches(rule[1], c) and c.transformable and testcond(rule[4], c.id) then
+           local selection = unitreference(c, b)
+           for _, thething in ipairs(selection) do
+             if converted[c.id] == nil then
+               converted[c.id] = thething
+             else
+               makeobject(c.tilex,c.tiley,thething,c.dir)
+             end
+           end
+         end
+       end
+     end
+   end
+
+   for i, b in pairs(converted) do
+     local c = Objects[i]
+     add_undo("convert", {convert = c.name, convert_id = c.undo_id})
+     c.name=b
+     c.sprite=b
+     c.color=getspritevalues(b).color
+     c.type = getspritevalues(b).type
+     c._active = true
+     c.file = nil
+     dotiling(c)
+     updatesprite(c)
+   end
+
+  local dels = {}
+  local iswrite = objectswithverb("write")
 
  for i, write in ipairs(iswrite) do
 
@@ -320,6 +374,21 @@ end
    elseif((love.keyboard.isDown("a"))or love.keyboard.isDown("left"))then dir = "left"
    elseif((love.keyboard.isDown("s"))or love.keyboard.isDown("down"))then dir = "down"
    elseif((love.keyboard.isDown("d"))or love.keyboard.isDown("right"))then dir = "right" end
+   if turnkey == "space" then
+     --do level thing
+     thelevel = ""
+     local there = allhere(select.tilex, select.tiley)
+     for a, b in ipairs(there) do
+       if b.name == "level" then
+         thelevel = b.levelinside
+         break
+       end
+     end
+
+     enterlevel(thelevel)
+     return
+
+   end
    local nx, ny = select.tilex, select.tiley
    if(dir == "right")then nx = nx+1
    elseif(dir == "left")then nx = nx-1
@@ -327,11 +396,28 @@ end
    elseif(dir == "up")then ny = ny-1 end
    local there = allhere(nx, ny)
    for a, b in ipairs(there) do
-     if ruleexists(b.id, nil, "is", "path") or b.name == "leevel" then
+     if ruleexists(b.id, nil, "is", "path") or (b.name == "level" and b.lock == nil) then
        update(select.id, nx, ny)
        select.dir = dir
+
+
+
      end
    end
+ end
+
+
+ for i, select in ipairs(isselect) do
+
+     local there = allhere(select.tilex, select.tiley)
+     for a, b in ipairs(there) do
+       if b.name == "level" then
+         levelhandle = b.levelinside
+         break
+       end
+     end
+
+
  end
 
  local teles = {}
@@ -527,7 +613,7 @@ end
   for i,c in ipairs(isdefeat) do
   local onhere = on_plus(c)
   for h,here in ipairs(onhere) do
-   if ruleexists(here.id,here.name,"is","you") and ruleexists(here.id, nil ,"is","float") == ruleexists(c.id, nil ,"is","float") then
+   if ruleexists(here.id,here.name,"is","you") or ruleexists(here.id,here.name,"is","you2") and ruleexists(here.id, nil ,"is","float") == ruleexists(c.id, nil ,"is","float") then
     table.insert(dels,here)
    end
   end
@@ -565,14 +651,19 @@ end
    for i, collect in ipairs(iscollect) do
      local onhere = on_plus(collect)
      for j, here in ipairs(onhere) do
-       if ruleexists(here.id, nil, "is", "you") and ruleexists(here.id, nil ,"is","float") == ruleexists(collect.id, nil ,"is","float") then
+       if ruleexists(here.id, nil, "is", "you") or ruleexists(here.id, nil, "is", "you2") and ruleexists(here.id, nil ,"is","float") == ruleexists(collect.id, nil ,"is","float") then
         table.insert(dels, collect)
        end
      end
    end
    dels = handledels(dels)
+   --[[
+
+   R.I.P this random spot of the code that i didnt do anything with. you will be missed.
+
  local wins = objectswithproperty("win")
           winning = true
+          ]]
 
 end
 function handledels(dels, dtype_, nolink_)
@@ -607,6 +698,7 @@ function handledels(dels, dtype_, nolink_)
    if not no_link and ruleexists(del.id, nil, "is", "link") then
      link = true
    end
+   add_undo("destroy", {id = del.id, undo_id = del.undo_id, dx = del.tilex, dy = del.tiley, dname = del.name, ddir = del.dir})
   removeunit(del)
  end
  if link then
@@ -619,7 +711,7 @@ function canwin()
  local wins = objectswithproperty("win")
  for i,win in ipairs(wins) do
   local onwin = on_plus(win)
-  local yous = objectswithproperty("you")
+  local yous = getplayers(true)
    for y,you in ipairs(yous) do
     for o,here in ipairs(onwin) do
      if(you == here) and ruleexists(here.id, nil ,"is","float") == ruleexists(you.id, nil ,"is","float")then
@@ -697,6 +789,8 @@ function makefile(x,y,dir_)
     obj.orig_x = x
     obj.orig_y = y
     obj.small = 1
+
+    obj.undo_id = #Objects
     dotiling(obj)
 
     updatesprite(obj)

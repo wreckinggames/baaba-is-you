@@ -86,10 +86,14 @@ moveunits()
 end
 
 mypushedunits = {}
-function moveunits()
+function moveunits(_thereturnofevilrecursion)
    pushedunits = {}
    pulledunits = {}
    mypushedunits = {}
+   local movequeue = {}
+
+   local recurse = _thereturnofevilrecursion or 0
+
   for i,moved in ipairs(allmoved) do
 
     local dir = moved[2]
@@ -98,6 +102,12 @@ function moveunits()
     mypushedunits = {}
 
     if unit ~= nil then
+
+      if unit.moving then
+        unit.moving = false
+        table.insert(movequeue, {unitid, dir}) -- fix double moves so we can finally fix the stupid bug! after 3 years!
+        break
+      end
 
       local sleep = ruleexists(unit.id, unit.name,"is","sleep")
       local still = ruleexists(unit.id, unit.name,"is","still")
@@ -130,6 +140,7 @@ function moveunits()
   for pid, pdir  in pairs(pushedunits) do
     if notmoved(pid,pdir) then
       local punit = Objects[pid]
+      add_undo("update", {id = punit.undo_id, old_x = punit.tilex, old_y = punit.tiley, dir = punit.dir})
       punit.from_x = punit.x
       punit.from_y = punit.y
       punit.to_x = punit.x+ (dir_to_xy(pdir)[1]) * tilesize
@@ -141,9 +152,27 @@ function moveunits()
   end
   pushedunits = {}
   allmoved = {}
+
+  if #movequeue > 0 then
+
+    if recurse < 417 then
+
+      allmoved = movequeue
+      moveunits(recurse + 1)
+
+    else
+
+      the_level_is_gone = true
+      return false
+
+    end
+
+  end
+
 end
 function update(unitid,x,y)
  local unit = Objects[unitid]
+  add_undo("update", {id = unit.undo_id, old_x = unit.tilex, old_y = unit.tiley, dir = unit.dir})
  unit.to_x = x * tilesize
  unit.to_y = y * tilesize
  unit.tilex = x
@@ -153,6 +182,7 @@ end
 
 function fullmove(unit, dir)
 
+  add_undo("update", {id = unit.undo_id, old_x = unit.tilex, old_y = unit.tiley, dir = unit.dir})
   domovesound = true
   if(dir == "right")then
     unit.to_x = unit.to_x+tilesize

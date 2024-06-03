@@ -27,4 +27,7 @@ function drawborders()
   local width, height = love.graphics.getDimensions()
   love.graphics.rectangle("fill", dx, 0, width, height)
   love.graphics.rectangle("fill", 0, dy, width, height)
+
+  love.graphics.rectangle("fill", 0, 0, width, y_offset)
+  love.graphics.rectangle("fill", 0, 0, x_offset, height)
 end

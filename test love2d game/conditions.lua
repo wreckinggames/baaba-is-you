@@ -41,6 +41,10 @@ condf["no"] = function(id, _, p)
     return false
 end
 
+condf["yes"] = function(id, _, p)
+    return true
+end
+
 condf["never"] = function(id, _, p)
     return false
 end
@@ -61,7 +65,13 @@ condf["on"] = function(id, args, p)
             done = done + 1
             break
           end
+          if j == "none" then
+            return false
+          end
         end
+      end
+      if j == "none" then
+        done = done + 1
       end
     end
     return done == #args
@@ -89,7 +99,13 @@ condf["above"] = function(id, args, p)
           done = done + 1
           break
         end
+        if j == "none" then
+          return false
+        end
       end
+    end
+    if j == "none" then
+      done = done + 1
     end
   end
   return done == #args
@@ -130,7 +146,13 @@ condf["below"] = function(id, args, p)
           done = done + 1
           break
         end
+        if j == "none" then
+          return false
+        end
       end
+    end
+    if j == "none" then
+      done = done + 1
     end
   end
   return done == #args
@@ -164,7 +186,13 @@ condf["near"] = function(id, args, p)
           done = done + 1
           break
         end
+        if j == "none" then
+          return false
+        end
       end
+    end
+    if j == "none" then
+      done = done + 1
     end
   end
   return done == #args
@@ -198,7 +226,13 @@ condf["nextto"] = function(id, args, p)
           done = done + 1
           break
         end
+        if j == "none" then
+          return false
+        end
       end
+    end
+    if j == "none" then
+      done = done + 1
     end
   end
   return done == #args
@@ -259,12 +293,14 @@ end
 
 condf["but"] = function(id, args, p)
   if id == "icon" then
+    local done = 0
     for i, j in ipairs(args) do
       if not matches(j, "icon") then
         done = done + 1
         break
       end
     end
+    return done == #args
   end
   local obj = Objects[id]
 
@@ -339,6 +375,23 @@ condf["contains"] = function(id, args, p)
       return false
     end
   end
+  return true
+end
+
+condf["the"] = function(id, args, p)
+  if id == "icon" then
+    return true -- there is only one window icon. you can't add more.
+  end
+
+
+  local ob = Objects[id]
+
+  for i, j in ipairs(Objects) do
+    if id ~= j.id and j.name == ob.name then
+      return false
+    end
+  end
+
   return true
 end
 

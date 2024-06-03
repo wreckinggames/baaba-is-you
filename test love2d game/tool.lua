@@ -85,11 +85,15 @@ function matches(word, unit, justname_)
     return true
   end
 
-  if word == "all" and not istext_or_word(name, 1) then
+  if word == "all" and not istext_or_word(name, 1) and not justname then
     return true
   end
 
   if word == "file" and id ~= -15 and unit.file ~= nil then
+    return true
+  end
+
+  if word == "choose" and chooserule ~= nil and chooserule ~= "" and chooserule[2] == name then
     return true
   end
 
@@ -125,7 +129,7 @@ function unitreference(unit, ref)
     if found then
       return {clipboard}
     else
-      return {}
+      return {"clipboard"}
     end
   end
 
@@ -161,6 +165,22 @@ function unitreference(unit, ref)
     return alls
   end
 
+  if ref == "choose" then
+    if chooserule ~= "" and chooserule ~= nil then
+      local o = chooserule[2] .. ""
+      if string.sub(o, 1, 5) == "text_" then
+        o = string.sub(o, 6)
+      end
+      --DBG = heldobj
+      if not getspritevalues(o).nope then
+        return {chooserule[2]}
+      end
+      return {}
+    end
+
+    return {"choose"}
+  end
+
   return {ref}
 end
 
@@ -168,4 +188,27 @@ function float(ob1,ob2)
   local float1 = ruleexists(ob1, Objects[ob1].name ,"is","float")
   local float2 = ruleexists(ob2, Objects[ob2].name ,"is","float")
   return float1 == float2
+end
+
+function dochoose()
+
+  local choosers = {}
+  local vischoosers = {}
+
+  for abc, def in ipairs(rules) do
+    if def[1] == "choose" and def[2] == "is" then
+      table.insert(choosers, {def[2], def[3], def[4]})
+      table.insert(vischoosers, def[3])
+    end
+  end
+
+  if #choosers > 0 then
+    table.insert(vischoosers, "nah")
+    vischoosers.escapebutton = #vischoosers
+
+    local pressedbutton = love.window.showMessageBox("Choose.", "Choose.", vischoosers)
+    chooserule = choosers[pressedbutton]
+
+  end
+
 end

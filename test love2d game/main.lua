@@ -11,17 +11,20 @@ local enabledebug = false
  local redraw_objects = true
 
 
-function love.load()
 
+function love.load()
+  current_os = love.system.getOS()
   --love.audio.play(love.audio.newSource("sound/baaba.wav","static"))
   music = love.audio.newSource("sound/baaba.wav","static")
   music:setLooping(true)
   music:play()
   music:setVolume(0.3)
 
+  leveltree = {}
   gamestate = "menu"
   levelx = 24
   levely = 14
+  wintimer = -1
   x_offset = 0
   y_offset = 0
   wewinning = false
@@ -34,7 +37,7 @@ function love.load()
   writethese = {}
   hideui = true
   levelmusic = 1
-  musiclist = {"default", "baaba", "the song ever", "burning", "nothing"}
+  musiclist = {"default", "baaba", "submar", "the song ever", "burning", "nothing", "demo", "flyly", "maptemp", "rocket", "whattimeisnt"}
   Palleteimage = love.graphics.newImage("sprite/testpalette.png")
   textmeta = love.graphics.newImage("sprite/textMeta.png")
   blockerimg = love.graphics.newImage("sprite/blocker.png")
@@ -43,6 +46,7 @@ function love.load()
   miscsprites["flag"] = love.graphics.newImage("sprite/flag.png")
   miscsprites["note"] = love.graphics.newImage("graphics/note.png")
   miscsprites["logo"] = love.graphics.newImage("graphics/baaba_logo.png")
+  miscsprites["dots"] = love.graphics.newImage("graphics/uhh.png")
   all_palettes = {"testpalette", "brighter", "AAAAA", "table", "spaceeee", "oooh", "orang", "reswapped", "burning", "yelly","reddy"}
   palette_id = 1
   loop_detector = 0
@@ -66,10 +70,10 @@ function love.load()
 
 
  changeicon = love.window.setIcon(love.image.newImageData("sprite/baaba-right.png"))
- keys = {"a","d","w","s","space","left","right","up","down"}
+ keys = {"a","d","w","s","space","left","right","up","down","z"}
 images=
-{{"baaba","stone","tiles","text_tiles","text_baaba","text_stone","text_is","text_you","text_meta","text_this","text_red","text_all","text_text","text_move","text_push","text_icon","text_weak","text_open","text_shut","text_stop","keeke","flag","wall"},{"text_keeke","text_flag","text_wall","whater","text_whater","text_sink","lavaaa","text_lavaaa","text_hot","text_melt","text_fofofo","fofofo","text_key","key","text_door","door","text_group","clock","text_clock","text_have","text_win","text_defeat",
-"text_clipboard"},{"text_orange","text_skulll","skulll","leevel","text_leevel","text_icy","icy","text_what","pumpkin","text_pumpkin","text_n'", "text_lonely","jelly","text_jelly", "text_often", "text_seldom", "text_powered", "text_power", "text_on", "box", "text_box", "bug","text_bug"},
+{{"baaba","stone","tile","text_tile","text_baaba","text_stone","text_is","text_you","text_meta","text_this","text_red","text_all","text_text","text_move","text_push","text_icon","text_weak","text_open","text_shut","text_stop","keeke","flag","wall"},{"text_keeke","text_flag","text_wall","whater","text_whater","text_sink","lavaaa","text_lavaaa","text_hot","text_melt","text_fofofo","fofofo","text_key","key","text_door","door","text_group","clock","text_clock","text_have","text_win","text_defeat",
+"text_clipboard"},{"text_orange","text_skull","skull","level","text_level","text_ice","ice","text_what","pumpkin","text_pumpkin","text_n'", "text_lonely","jelly","text_jelly", "text_often", "text_seldom", "text_powered", "text_power", "text_on", "box", "text_box", "bug","text_bug"},
 { "square", "text_square",
  "circle", "text_circle", "triangle", "text_triangle", "text_fear","grass","text_grass","grubble","text_grubble","rubble","text_rubble", "scribble", "text_scribble","hex","text_hex","pentagon","text_pentagon","text_float", "cake","text_cake","the m"},{"text_the m", "jijiji",
  "text_jijiji","ite","text_ite","text_small","crab","text_crab","robot","text_robot","brick","text_brick","hedge","text_hedge","block","text_block","pa","text_pa","belt","text_belt","fungus","text_fungus","bubble"},{"text_bubble","pillar","text_pillar","flower","text_flower","algae","text_algae","love",
@@ -83,7 +87,8 @@ images=
 { "clipboard", "icon", "this","monster","text_monster","monitor","text_monitor","question","text_question","text_uncopy","text_textof","text_but","mountain","text_mountain","correct","text_correct","horse","text_horse","battery","text_battery","staple","text_staple", "text_upsilon"},
 {"incorrect", "text_incorrect","text_heavy","text_oneway","text_link","text_shift","text_reset","text_set","text_big","text_random", "axe","text_axe","pick","text_pick","sword","text_sword","log","text_log","text_feeling","text_without","text_starts","text_contains","text_ends"},
 {"text_path","text_left","text_down","text_right","text_0","text_1","text_2","text_3","text_4","text_5","text_6","text_7","text_8","text_9","hand","text_hand","sqrt9","text_sqrt9","text_tele", "text_file","mathdotsinxword","text_mathdotsinxword","text_dollars"},
-{"3dollars","text_3dollars","text_pink","text_ba","ring","text_ring","text_ch","chair","text_chair","lemon","text_lemon","prize","text_prize","car","text_car","text_xnopyt","text_hide","jsdhgous","text_jsdhgous","seastar","text_seastar","lock","text_lock"} }
+{"3dollars","text_3dollars","text_pink","text_ba","ring","text_ring","text_ch","chair","text_chair","lemon","text_lemon","prize","text_prize","car","text_car","text_xnopyt","text_hide","jsdhgous","text_jsdhgous","seastar","text_seastar","lock","text_lock"},
+{"cucucu","text_cucucu","wheel","text_wheel","file","choose","text_choose","abba","text_abba","text_none","text_yes","text_the", "stack", "text_stack"} }
 
 require "ui"
 require "tool"
@@ -93,11 +98,41 @@ require "block"
 require "move"
 require "palette"
 require "editor"
+require "undo"
+
+  monitor_things = {
+    burn = "burn",
+    collect = "collect",
+    hot = "burn",
+    move = "move",
+    you = "you",
+    you2 = "you",
+    win = "win",
+    up = "up",
+    what = "rick",
+    make = "upload",
+    have = "upload",
+    select = "select",
+    still = "off",
+    defeat = "crash",
+    red = "color",
+    orange = "color",
+    yellow = "color",
+    green = "color",
+    gellow = "color",
+    blue = "color",
+    purple = "color",
+    pink = "color",
+    reset = "off",
+    sleep = "off"
+  }
+
+make_tabs()
 
 baserules = {}
 
 table.insert(baserules,{"text","is","push"})
-table.insert(baserules,{"leevel","is","stop"})
+table.insert(baserules,{"level","is","stop"})
 table.insert(baserules,{"cursor","is","select"})
 table.insert(baserules,{"line","is","path"})
 --table.insert(baserules,{"57","is","defeat",{}})
@@ -106,8 +141,16 @@ menu_load()
 make_prop_list()
 end
 
+levelhandle = nil
 function passturn()
 
+  levelhandle = nil
+
+  if #undolist > 0 and #undolist[#undolist] == 0 then
+    table.remove(undolist, #undolist)
+  end
+
+  table.insert(undolist, {})
   loop_detector = 0
   the_level_is_gone = false
 
@@ -125,12 +168,16 @@ function passturn()
      unit.sleep = false
      unit.hide = nil
      unit.old = false
+     unit.float = false
      unit.blocked = false
      unit.from_x = unit.x
      unit.from_y = unit.y
      unit.to_x = unit.x
      unit.to_y = unit.y
    end
+
+   chooserule = ""
+
 
    local cb = love.system.getClipboardText()
    for a, b in ipairs(rules) do
@@ -199,7 +246,7 @@ function passturn()
       updatesprite(j)
     end
 
-    wewinning = canwin()
+
     if the_level_is_gone then
       destroylevel("LOOP!!!")
       return
@@ -231,6 +278,21 @@ function passturn()
     elseif not music:isPlaying() then
       music:play()
     end
+
+    wewinning = canwin()
+    if wewinning then
+      wintimer = 5
+      music:pause()
+      love.audio.play(love.audio.newSource("sound/victoryr.wav","static"))
+      if menu_state ~= "editor_test" then
+        if (love.filesystem.getInfo("progress/levels.txt") == nil) then
+          love.filesystem.write("progress/levels.txt","cleared=" .. levelname .. "\n")
+        elseif not levelcompleted(levelname) then
+          love.filesystem.append("progress/levels.txt","cleared=" .. levelname .. "\n")
+        end
+      end
+      return
+    end
 end
 
 
@@ -246,7 +308,7 @@ function dotiling(j)
 
       for k, m in ipairs(l) do
         for n, o in ipairs(alltilehere(j.tilex + m[1], j.tiley + m[2])) do
-          if o.name == j.name then
+          if o.name == j.name or o.name == "level" then
             tileval = tileval + mult
             break
           end
@@ -271,6 +333,16 @@ function alltilehere(x,y)
   return finalobjs3
 end
 
+function alltilehere_editor(x,y)
+    local finalobjs3 = {}
+      for a,b in ipairs(editor_curr_objects) do
+    if(x == b.tilex) and (y == b.tiley) then
+     table.insert(finalobjs3,b)
+    end
+  end
+  return finalobjs3
+end
+
 candoturn = false
 
 function love.keypressed(key, scancode, isrepeat)
@@ -280,6 +352,7 @@ if(editlevelname == false)then
 
 
   if ineditor then
+    --[[
     if(key == "x")then
    saveleveldata(levelname)
     end
@@ -289,7 +362,7 @@ if(editlevelname == false)then
     if(key == "j")then
      loadleveldata("maingame/baaba is you.leevel")
 
-    end
+   end]] --removed these hotkeys for now because they are useless!!
     if key == "p" then
       DBG = palette
 
@@ -332,15 +405,60 @@ if(editlevelname == false)then
     if (key == "up" or key == "down" or key == "left" or key == "right") then
       helddir = key
     end
+    if key == "o" then
+      local heldobj = heldtile .. ""
+      if string.sub(heldobj, 1, 5) == "text_" then
+        heldobj = string.sub(heldobj, 6)
+      end
+      --DBG = heldobj
+      if not getspritevalues(heldobj).nope then
+        if heldobj ~= heldtile then
+          heldtile = heldobj
+        else
+          heldtile = "text_" .. heldtile
+        end
+      end
+
+    end
+    if key == "i" then
+      for i5,c5 in ipairs(editor_curr_objects) do
+       if(dist(c5.x+tilesize/2,c5.y+tilesize/2,love.mouse.getX(),love.mouse.getY()) < tilesize/1.5) then
+       --c5.active = false
+
+
+           heldtile = c5.name
+           break
+
+       end
+      end
+    end
 
   else
     if (key == "r") then
-      Objects = {}
-      wewinning = false
-      theloop = false
-      loadlevel()
+
+      if gamestate == "editor_test" then
+        Objects = {}
+        wewinning = false
+        theloop = false
+        loadlevel()
+      elseif gamestate == "playing" then
+        Objects = {}
+        loadlevel()
+        gotogame()
+
+        x_offset = (love.graphics.getWidth() - levelx * tilesize) / 2
+        y_offset = (love.graphics.getHeight() - (levely + 1) * tilesize) / 2
+      end
+    end
+    if key == "c" then
+      dochoose()
     end
   end
+
+--this doesnt work dont try it
+  --if key == "rctrl" then
+      --debug.debug()
+   --end
 
 end
   if (editlevelname == true) then
@@ -381,10 +499,38 @@ function updatesprite(c)
     csprite = string.sub(csprite,6,-1)
   end
 
+  if c.name == "monitor" then
+    local suffix = ""
+    if current_os == "OS X" then
+      suffix = "mac"
+    elseif current_os == "Windows" then
+      suffix = "windows"
+    elseif current_os == "Linux" then
+      suffix = "linux"
+    end
+
+    for _, zw in ipairs(rules) do
+      if matches(zw[1], c) then -- and zw[2] ~= "write" then       note: dont know if i should add this or not
+        for zi, zj in pairs(monitor_things) do
+          if matches(zw[3], zi, true) or matches(zw[2], zi, true) then
+            suffix = zj
+            break
+          end
+        end
+      end
+    end
+
+    csprite = csprite .. "-" .. suffix
+
+
+
+  end
+
   c.sprite = love.graphics.newImage("sprite/" .. csprite .. ".png")
 
 
 end
+
 
 function love.draw()
   if not love.window.hasFocus() then
@@ -392,7 +538,7 @@ function love.draw()
   end
 
 
-  if gamestate == "editor" then
+  if gamestate == "editor" or gamestate == "playing" then
 
 
 
@@ -408,7 +554,7 @@ function love.draw()
      local t = palettecolors[c.color[1]]
      if(t ~= nil) and (t[c.color[2]] ~= nil)then
       love.graphics.setColor(t[c.color[2]])
-        if c._active == false then
+        if c._active == false or c.lock ~= nil then
           local a1 = { t[c.color[2]][1] * 0.46, t[c.color[2]][2] * 0.46, t[c.color[2]][3] * 0.54}
           love.graphics.setColor(a1)
         end
@@ -419,7 +565,9 @@ function love.draw()
         local cx = c.x
         local cy = c.y
 
-
+        if c.float then
+          cy = cy - (10 - math.sin(love.timer.getTime()) * 7) * c.size
+        end
 
 
         if c.size > 1 then
@@ -525,25 +673,35 @@ function love.draw()
         local date = os.date("*t",os.time()).day
         love.graphics.draw(love.graphics.newImage("sprite/calendarnumbers/c" .. tostring(date) .. ".png"),c.x  + x_offset,c.y  + y_offset,0,c.size * (tilesize / 24))
 
+      elseif c.num ~= nil and c.lock == nil then
+        love.graphics.draw(love.graphics.newImage("sprite/calendarnumbers/c" .. tostring(c.num) .. ".png"),c.x  + x_offset - 3,c.y  + y_offset - 1 ,0,c.size * (tilesize / 24))
+
       end
    end
 
    local width, height = love.graphics.getDimensions()
    if wewinning then
      love.graphics.setColor(1,1,1)
-    love.graphics.draw(love.graphics.newImage("graphics/you win.png"),width / 2 - 146,height / 2 - 90,0,2)
+    love.graphics.draw(love.graphics.newImage("graphics/you win.png"),width / 2 - 146,height / 2 - 90,0, 2 *math.sin((8 - wintimer) / 4 * math.pi / 2) )
    end
    if theloop then
      love.graphics.setColor(1,1,1)
     love.graphics.draw(love.graphics.newImage("graphics/LOOP.png"),width / 2 - 146,height / 2 - 90,0,2)
    end
 
+   if levelhandle ~= nil then
+     love.graphics.setColor(1,1,1)
+     love.graphics.print(levelhandle, 10, 10, 0, 2, 2, 0, 0, 0, 0)
+   end
 
-   draweditor()
+   if gamestate == "editor" then
+     draweditor()
 
         if  not hideui and ineditor then
           drawui()
+          drawtabs()
         end
+      end
 
 
 
@@ -563,25 +721,36 @@ function love.draw()
            love.graphics.print(aa)]] --outputs something like "1. main.lua"
 
            -- Draw Editor Play button
-
-           if ineditor then
-             local csprite = miscsprites["play"]
-             love.graphics.setColor(palettecolors[4][1])
-             love.graphics.draw(csprite,width - 80,height - 90,0,2)
-           else
-             local csprite = miscsprites["flag"]
-             love.graphics.setColor(palettecolors[1][1])
-             love.graphics.draw(csprite,width - 80,height - 90,0,2)
+           if gamestate == "editor" then
+             if ineditor then
+               local csprite = miscsprites["play"]
+               love.graphics.setColor(palettecolors[4][1])
+               love.graphics.draw(csprite,width - 80,height - 90,0,2)
+             else
+               local csprite = miscsprites["flag"]
+               love.graphics.setColor(palettecolors[1][1])
+               love.graphics.draw(csprite,width - 80,height - 90,0,2)
+             end
            end
 
            if stupid_music_timer > 0 then
-             local csprite = miscsprites["note"]
-             love.graphics.setColor(palettecolors[7][5][1] * 0.2, palettecolors[7][5][2] * 0.2, palettecolors[7][5][3] * 0.3)
-             love.graphics.rectangle("fill", width - 130 - string.len(musiclist[levelmusic]) * 10 - 5, 51, string.len(musiclist[levelmusic]) * 10 + 109, 134)
-             love.graphics.rectangle("fill", width - 180, width - 151, 90, 90)
-             love.graphics.setColor(palettecolors[7][5][1] * 1.2, palettecolors[7][5][2] * 1.2, palettecolors[7][5][3] * 1.3)
-             love.graphics.draw(csprite,width - 80,95,0,1)
-             love.graphics.print(musiclist[levelmusic], width - 130 - string.len(musiclist[levelmusic]) * 10, 100, 0, 2)
+             if not mutemusic then
+               local csprite = miscsprites["note"]
+               love.graphics.setColor(palettecolors[7][5][1] * 0.2, palettecolors[7][5][2] * 0.2, palettecolors[7][5][3] * 0.3)
+               love.graphics.rectangle("fill", width - 130 - string.len(musiclist[levelmusic]) * 10 - 5, 51, string.len(musiclist[levelmusic]) * 10 + 109, 134)
+               love.graphics.rectangle("fill", width - 180, width - 151, 90, 90)
+               love.graphics.setColor(palettecolors[7][5][1] * 1.2, palettecolors[7][5][2] * 1.2, palettecolors[7][5][3] * 1.3)
+               love.graphics.draw(csprite,width - 80,95,0,1)
+               love.graphics.print(musiclist[levelmusic], width - 130 - string.len(musiclist[levelmusic]) * 10, 100, 0, 2)
+             else
+               local csprite = miscsprites["dots"]
+               love.graphics.setColor(palettecolors[7][5][1] * 0.2, palettecolors[7][5][2] * 0.2, palettecolors[7][5][3] * 0.3)
+               love.graphics.rectangle("fill", width - 130 - 5 * 10 - 5, 51, 5 * 10 + 109, 134)
+               love.graphics.rectangle("fill", width - 180, width - 151, 90, 90)
+               love.graphics.setColor(palettecolors[1][2][1], palettecolors[1][2][2], palettecolors[1][2][3] * 1.1)
+               love.graphics.draw(csprite,width - 80,95,0,1)
+               love.graphics.print("what?", width - 130 - 5 * 10, 100, 0, 2)
+             end
            end
 
   end
@@ -592,9 +761,10 @@ function love.draw()
     love.graphics.setColor(1,1,1)
     love.graphics.draw(csprite,width / 2 - 191,155,0,2)
   end
+
 end
 
-delay = {left = 0, up = 0, down = 0, right = 0, space = 0, w = 0, a = 0, s = 0, d = 0}
+delay = {left = 0, up = 0, down = 0, right = 0, space = 0, w = 0, a = 0, s = 0, d = 0, z = 0}
 turntimer = 0
 delay_timer = 0.15
 turnkey = ""
@@ -612,15 +782,45 @@ function love.update(delta)
   turntimer = turntimer + delta
 
 
+
   doturn = false
-  for i, j in ipairs(keys) do
-    if love.keyboard.isDown(j) and delay[j] <= 0 then
-      doturn = true
-      delay[j] = delay_timer
-      turnkey = j
-      break
+
+    for i, j in ipairs(keys) do
+      if love.keyboard.isDown(j) and delay[j] <= 0 then
+        if j ~= "z" then
+          doturn = true
+          turnkey = j
+        elseif not wewinning then
+          undo()
+        end
+        delay[j] = delay_timer
+        break
+      end
     end
-  end
+
+    if wewinning then
+      doturn = false
+      if wintimer > 0 then
+        wintimer = wintimer - delta
+      else
+        if not (menu_state == "editor_test") then
+
+          if #leveltree >= 2 then
+            enterlevel(leveltree[#leveltree - 1])
+            table.remove(leveltree, #leveltree)
+            table.remove(leveltree, #leveltree)
+          else
+            gotomenuplay()
+          end
+
+        else
+
+          dielevel()
+
+        end
+      end
+    end
+
   for i, v in pairs(delay) do
     if delay[i] > 0 then
       delay[i] = v - delta
@@ -628,6 +828,8 @@ function love.update(delta)
       delay[i] = 0
     end
   end
+
+
 
   if doturn and not (gamestate == "editor" and menu_state ~= "editor_test") then
     if newturn() then
@@ -710,7 +912,7 @@ function love.filedropped(file)
 	end
 end
 
-function makeobject(x,y,name,dir_,meta_)
+function makeobject(x,y,name,dir_,meta_,level_)
     obj = {}
     obj.size = 1
     obj.tilex = x
@@ -735,14 +937,28 @@ function makeobject(x,y,name,dir_,meta_)
     obj.orig_x = x
     obj.orig_y = y
     obj.small = 1
+
+    idtotal = idtotal + 1
+    obj.undo_id = idtotal + 0
+
+    obj.levelinside = level_
+
     dotiling(obj)
 
     updatesprite(obj)
 
     table.insert(Objects,obj)
+    if afterframeone ~= nil then
+      add_undo("create", {the_id = obj.undo_id})
+    end
 
+    return obj
 
 end
+
+
+
+
 function contains(table,item)
 for index1,val11 in ipairs(table) do
  if(val11 == item)then
@@ -803,4 +1019,31 @@ and if you get any other object,
 you also get it added to your inventory.
 so you can collect doors or something and it wont add an orb because orbs arent doors
 
+]]
+
+
+--TODO
+--[[
+
+MAIN FEATURES:
+1. Make a way to create a map [kinda]
+2. Make WIN boot you back to the map [ye]
+3. Make a map [Y!!]
+4. Seperate play (custom levels) and play (campaign) into two buttons []
+!5! 0. Add a puff count [not now]
+!6! 58. Make levels [not now2 ]
+7. Polish up the mechanics from 1 and 2 as well as level entering
+
+BUGS:
+fix multimoves
+fix the sound bug with placing level files into levels
+
+SLIGHTLY LESS MAIN FEATURES:
+level icons
+return to map
+make file compatible with levels
+
+
+funny thingy: make the main menu a level. so the buttons could be special objects, "baaba is you" would be a rule because
+its the game name, whatever
 ]]
