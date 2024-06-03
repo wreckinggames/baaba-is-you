@@ -37,7 +37,7 @@ function love.load()
   writethese = {}
   hideui = true
   levelmusic = 1
-  musiclist = {"default", "baaba", "submar", "the song ever", "burning", "nothing", "demo", "flyly", "maptemp", "rocket", "whattimeisnt"}
+  musiclist = {"default", "baaba", "the song ever", "burning", "nothing", "demo", "flyly", "maptemp", "whattimeisnt"}
   Palleteimage = love.graphics.newImage("sprite/testpalette.png")
   textmeta = love.graphics.newImage("sprite/textMeta.png")
   blockerimg = love.graphics.newImage("sprite/blocker.png")
