@@ -290,7 +290,7 @@ function handletilething()
       for i2,c in ipairs(buttons) do
        if love.mouse.getX() > c.x1 and love.mouse.getX() < c.x1 + (3.3 * c.buttonsize) and  love.mouse.getY() > c.y1 and love.mouse.getY() < c.y1 + (3.3 * c.buttonsize) then
          if heldtile ~= c.buttonname then
-           --love.audio.play(love.audio.newSource("sound/select.wav","static"))
+           love.audio.play(love.audio.newSource("sound/select.wav","static"))
          end
        heldtile = c.buttonname
        --love.window.setPosition(4,6)
@@ -365,7 +365,7 @@ function handletilething()
         if(love.keyboard.isDown("q") == false)then
          delobject(love.mouse.getX(),love.mouse.getY())
         else
-          love.audio.play(love.audio.newSource("sound/place.wav","static"))
+          --love.audio.play(love.audio.newSource("sound/place.wav","static"))
           c5.levelinside = levelname
         end
 
