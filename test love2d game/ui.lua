@@ -4,7 +4,7 @@
 function initui()
   buttons = {}
 
-  for i,c in ipairs(images) do
+  for i,c in ipairs(editor_tabs[curr_tab]) do
       for j,d in ipairs(c) do
         Button1={}
 
@@ -20,7 +20,7 @@ function initui()
 
         Button1.buttonsize = 10 * windowtilesize
         Button1.x1 = (j-1)*Button1.buttonsize*3.3
-        Button1.y1 = (i-1)*Button1.buttonsize*3.3
+        Button1.y1 = 13+(i-1)*Button1.buttonsize*3.3
         table.insert(buttons,Button1)
       end
   end
@@ -57,6 +57,20 @@ function drawui()
     end
   end
 end
+
+function drawtabs()
+
+  for i, j in ipairs(tab_names) do
+    local tcolor = tab_colors[i]
+    local t = palettecolors[tcolor[1]]
+
+    if(t ~= nil) and (t[tcolor[2]] ~= nil)then
+      love.graphics.setColor(t[tcolor[2]][1], t[tcolor[2]][2], t[tcolor[2]][3])
+    end
+    love.graphics.draw(miscsprites["tab_" .. j], (i - 1) * 40,1,0,1)
+  end
+end
+
 function newalert(alertx,alerty,alertmessage,alertbuttons,alertmessages,alertbuttonsizes,alertbuttonstart)
  for i,c in ipairs(alertmessages) do
    love.graphics.setColor(0.25,0.5,1)

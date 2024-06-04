@@ -34,13 +34,13 @@ objectValues = {
     type = 0
   },
   {
-    name = "tiles",
-    sprite = "tiles",
+    name = "tile",
+    sprite = "tile",
     color = {7,4},
   },
   {
-    name = "text_tiles",
-    sprite = "text_tiles",
+    name = "text_tile",
+    sprite = "text_tile",
     color = {7,4},
     type = 0
   },
@@ -174,7 +174,8 @@ objectValues = {
   {
     name = "whater",
     sprite = "whater",
-    color = {6,1}
+    color = {6,1},
+    rotate = 5
   },
   {
     name = "text_lavaaa",
@@ -185,7 +186,8 @@ objectValues = {
   {
     name = "lavaaa",
     sprite = "lavaaa",
-    color = {2,1}
+    color = {2,1},
+    rotate = 5
   },
   {
     name = "text_hot",
@@ -282,26 +284,26 @@ objectValues = {
     type = 2
   },
   {
-    name = "skulll",
-    sprite = "skulll",
+    name = "skull",
+    sprite = "skull",
     color = {3,4},
     rotate = 4
   },
   {
-    name = "text_skulll",
-    sprite = "text_skulll",
+    name = "text_skull",
+    sprite = "text_skull",
     color = {3,4},
     type = 0
   },
   {
-    name = "text_leevel",
-    sprite = "text_leevel",
+    name = "text_level",
+    sprite = "text_level",
     color = {4,4},
     type = 0
   },
   {
-    name = "leevel",
-    sprite = "leevel",
+    name = "level",
+    sprite = "level",
     color = {1,2}
   },
   {
@@ -323,14 +325,14 @@ objectValues = {
     type = 2
   },
   {
-    name = "text_icy",
-    sprite = "text_icy",
+    name = "text_ice",
+    sprite = "text_ice",
     color = {6,5},
     type = 0
   },
   {
-    name = "icy",
-    sprite = "icy",
+    name = "ice",
+    sprite = "ice",
     color = {6,5}
   },
   {
@@ -1154,7 +1156,8 @@ objectValues = {
   {
     name = "bog",
     sprite = "whater",
-    color = {5,1}
+    color = {5,1},
+    rotate = 5
   },
   {
     name = "text_stump",
@@ -2034,7 +2037,7 @@ objectValues = {
   {
     name = "file",
     sprite = "file",
-    color = {7,3}
+    color = {1,2} --why was this 7,3 !??!>?>!>
   },
   {
     name = "text_ba",
@@ -2159,6 +2162,81 @@ objectValues = {
     name = "text_lock",
     sprite = "text_lock",
     color = {1,4},
+    type = 0
+  },
+  {
+    name = "abba",
+    sprite = "abba",
+    color = {1,2},
+    rotate = 6
+  },
+  {
+    name = "text_abba",
+    sprite = "text_abba",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "cucucu",
+    sprite = "cucucu",
+    color = {1,2},
+    rotate = 6
+  },
+  {
+    name = "text_cucucu",
+    sprite = "text_cucucu",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "wheel",
+    sprite = "wheel",
+    color = {1,1}
+  },
+  {
+    name = "text_wheel",
+    sprite = "text_wheel",
+    color = {1,1},
+    type = 0
+  },
+  {
+    name = "choose",
+    sprite = "choose",
+    color = {1,2}
+  },
+  {
+    name = "text_choose",
+    sprite = "text_choose",
+    color = {1,2},
+    type = 0
+  },
+  {
+    name = "text_the",
+    sprite = "text_the",
+    color = {1,2},
+    type = 3
+  },
+  {
+    name = "text_yes",
+    sprite = "text_yes",
+    color = {4,1},
+    type = 3
+  },
+  {
+    name = "text_none",
+    sprite = "text_none",
+    color = {1,2},
+    type = -5
+  },
+  {
+    name = "stack",
+    sprite = "stack",
+    color = {1,2}
+  },
+  {
+    name = "text_stack",
+    sprite = "text_stack",
+    color = {1,2},
     type = 0
   },
 }

@@ -1,6 +1,6 @@
 editor_curr_objects = {}
 ineditor = true
-function addobject(heldtile,x,y,dir)
+function addobject(heldtile,x,y,dir,level_)
   if not ineditor then
     return
   end
@@ -25,13 +25,18 @@ function addobject(heldtile,x,y,dir)
 
   obj.active = true
 
+  if level_ ~= nil then
+    obj.levelinside = level_
+  end
+
   updatesprite(obj)
 
   if obj.tilex > 0 and obj.tilex < (levelx - 1) and obj.tiley > 0 and obj.tiley < levely then
     table.insert(editor_curr_objects,obj)
   end
+  update_editor_tiling()
 
-
+  return obj
 end
 
 
@@ -51,6 +56,8 @@ function delobject (x,y)
   if deleted then
     love.audio.play(love.audio.newSource("sound/editordelete.wav","static"))
   end
+
+  update_editor_tiling()
 
 end
 
@@ -161,7 +168,7 @@ function draweditor()
 
        love.graphics.setColor(1,0,0)
 
-       if metaval == 1 then
+       if love.keyboard.isDown("m") then
          love.graphics.setColor(1,0,0.5, 0.5)
          love.graphics.draw(love.graphics.newImage("sprite/textMeta.png"),place_x  + x_offset,place_y  + y_offset,0,(tilesize / 24))
        end
@@ -171,6 +178,7 @@ function draweditor()
 
 end
 
+idtotal = 0
 
 function loadlevel()
 
@@ -178,10 +186,47 @@ function loadlevel()
   ineditor = false
   filecount = 0
   fileimages = {}
+  undolist = {}
   currenticon = "baaba"
+
+  DBG = tostring(#editor_curr_objects)
+  afterframeone = nil
+  idtotal = 0
+
   for i, j in ipairs(editor_curr_objects) do
 
-      makeobject(j.tilex,j.tiley,j.name,j.dir,j.meta)
+      makeobject(j.tilex,j.tiley,j.name,j.dir,j.meta,j.levelinside)
+      if j.num ~= nil then
+        Objects[#Objects].num = j.num
+      end
+      if j.lock ~= nil and not levelcompleted(levelname) then
+        Objects[#Objects].lock = j.lock
+      end
+
+  end
+  afterframeone = true
+
+  for i, j in ipairs(Objects) do
+
+    if j.lock ~= nil then
+      for a, b in ipairs({"left","up","right","down"}) do
+
+        local superbreak = false
+
+        for c, d in ipairs(gettiles(b, j.tilex, j.tiley, 1)) do
+          if d.levelinside ~= nil and levelcompleted(d.levelinside) then
+            j.lock = nil
+            superbreak = true
+            break
+          end
+        end
+
+        if superbreak then
+          break
+        end
+
+      end
+    end
 
   end
   parse_text()
@@ -220,6 +265,7 @@ function dielevel()
   menu_state = "editor"
   ineditor = true
   Objects = {}
+  undolist = {}
 
   currenticon = "baaba"
   wewinning = false
@@ -249,6 +295,17 @@ function handletilething()
        heldtile = c.buttonname
        --love.window.setPosition(4,6)
        end
+      end
+
+      for i2, c in ipairs(tab_buttons) do
+        if love.mouse.getX() > c.x and love.mouse.getX() < c.x + 36 and  love.mouse.getY() > c.y and love.mouse.getY() < c.y + 12 then
+          if curr_tab ~= c.name then
+            love.audio.play(love.audio.newSource("sound/select.wav","static"))
+          end
+          curr_tab = c.name
+          initui()
+        --love.window.setPosition(4,6)
+        end
       end
     end
    end
@@ -303,14 +360,164 @@ function handletilething()
     for i5,c5 in ipairs(editor_curr_objects) do
      if(dist(c5.x+tilesize/2,c5.y+tilesize/2,love.mouse.getX(),love.mouse.getY()) < tilesize/1.5) then
      --c5.active = false
-      if(love.keyboard.isDown("q") == false)then
-       delobject(love.mouse.getX(),love.mouse.getY())
-      else
-        AllLevels[c5.id] = levelname
 
-      end
+
+        if(love.keyboard.isDown("q") == false)then
+         delobject(love.mouse.getX(),love.mouse.getY())
+        else
+          --love.audio.play(love.audio.newSource("sound/place.wav","static"))
+          c5.levelinside = levelname
+        end
+
      end
     end
    end
    --drawui()
  end
+
+editor_tabs = {}
+function make_tabs()
+  editor_tabs = {}
+
+  tab_names = {"basic", "characters","items","obstacles","rules","decor","abstract","letters","advanced","new","all"}
+  tab_colors = {{2,3},{1,2},{3,1},{2,3},{1,2},{6,3},{4,4},{1,2},{1,3},{3,1},{1,2}}
+  tab_buttons = {}
+  for a, b in ipairs(tab_names) do
+    miscsprites["tab_" .. b] = love.graphics.newImage("graphics/tabs/tab_" .. b .. ".png")
+    table.insert(tab_buttons, {name = b,x = a * 40 - 40,y = 1})
+  end
+  curr_tab = "all"
+  editor_tabs.characters = {
+    {"baaba", "text_baaba", "keeke", "text_keeke", "the m", "text_the m", "fofofo", "text_fofofo", "jijiji", "text_jijiji", "ite", "text_ite", "baadbad", "text_baadbad"},
+    {"wug","text_wug","pa","text_pa","robot","text_robot","bird","text_bird","crab","text_crab","lim","text_lim","turtle","text_turtle"},
+    {"jsdhgous","text_jsdhgous","bee","text_bee","horse","text_horse","sqrt9","text_sqrt9","ghost","text_ghost","guy","text_guy","eye","text_eye"},
+    {"skull","text_skull","bat","text_bat","bug","text_bug","statue","text_statue","monster","text_monster","jelly","text_jelly","fish","text_fish"},
+    {"cucucu","text_cucucu","abba","text_abba"},
+    {},
+    {"all","text_all","group","text_group"}
+  }
+
+  editor_tabs.letters = {
+    {"text_a","text_b","text_c","text_d","text_e","text_f","text_g","text_h","text_i","text_j","text_k","text_l","text_m"},
+    {"text_n","text_o","text_p","text_no","text_r","text_s","text_t","text_u","text_v","text_w","text_x","text_y","text_z"},
+    {},
+    {"text_0","text_1","text_2","text_3","text_4","text_5","text_6","text_7","text_8","text_9","text_ch","text_upsilon","text_dollars"}
+  }
+
+  editor_tabs.abstract = {
+      {"circle","text_circle","triangle","text_triangle","square","text_square","pentagon","text_pentagon","hex","text_hex","arrow","text_arrow"},
+      {"pa","text_pa","block","text_block","target","text_target","goal","text_goal","pixel","text_pixel","line","text_line"},
+      {"arc","text_arc","dot","text_dot","love","text_love","blossom","text_blossom","correct","text_correct","incorrect","text_incorrect"},
+      {"cursor","text_cursor","question","text_question","mathdotsinxword","text_mathdotsinxword","icon","text_icon"},
+      {"file","text_file","choose","text_choose","stack", "text_stack"},
+
+  }
+
+  editor_tabs.items = {
+    {"stone","flag","key","clock","box","cake","block","belt","pillar","star","cog","fruit","button","rocket"},
+    {"text_stone","text_flag","text_key","text_clock","text_box","text_cake","text_block","text_belt","text_pillar","text_star","text_cog","text_fruit","text_button","text_rocket"},
+    {"moon","pants","shirt","card","jar","lever","bell","orb","gem","bucket","bananas","monitor","battery","staple"},
+    {"text_moon","text_pants","text_shirt","text_card","text_jar","text_lever","text_bell","text_orb","text_gem","text_bucket","text_bananas","text_monitor","text_battery","text_staple"},
+    {"axe","sword","pick","log","3dollars","ring","lemon","chair","prize","car","hand","bolt","pumpkin","seastar"},
+    {"text_axe","text_sword","text_pick","text_log","text_3dollars","text_ring","text_lemon","text_chair","text_prize","text_car","text_hand","text_bolt","text_pumpkin","text_seastar"},
+    {"satelite","wheel"},
+    {"text_satelite","text_wheel"},
+  }
+
+  editor_tabs.obstacles = {
+    {"wall","text_wall","door","text_door","hedge","text_hedge","pipe","text_pipe","cliff","text_cliff","fence","text_fence","cloud","text_cloud"},
+    {"whater","text_whater","lavaaa","text_lavaaa","bog","text_bog","sj7ll","text_sj7ll","fiiiiire","text_fiiiiire","lock","text_lock","fan","text_fan"},
+    {"ice","text_ice"},
+    {"skull","text_skull","bug","text_bug","jelly","text_jelly"}
+  }
+
+  editor_tabs.decor = {
+    {"tile","grass","grubble","rubble","brick","fungus","bubble","flower","algae","sun","foliage","husk","leaf","reed"},
+    {"text_tile","text_grass","text_grubble","text_rubble","text_brick","text_fungus","text_bubble","text_flower","text_algae","text_sun","text_foliage","text_husk","text_leaf","text_reed"},
+
+    {"tree","rose","dust","stump","gburble","planet","mountain","star","moon","stone","calendar"},
+    {"text_tree","text_rose","text_dust","text_stump","text_gburble","text_planet","text_mountain","text_star","text_moon","text_stone","text_calendar"}
+  }
+
+  editor_tabs.rules = {
+    {"text_is","text_have","text_make","text_write","text_eat","text_fear","text_n'","text_the"},
+    {},
+    {"text_you","text_win","text_stop","text_push","text_sink","text_defeat","text_hot","text_melt","text_move","text_open","text_shut","text_float","text_weak","text_tele"},
+    {"text_up","text_down","text_left","text_right","text_fall","text_hide","text_shift","text_sleep","text_pull"},
+    {"text_red","text_orange","text_yellow","text_gellow","text_green","text_blue","text_purple","text_pink"},
+    {"text_you2","text_select","text_auto","text_power","text_powered"},
+    {"text_meta","text_unmeta","text_what","text_small","text_big","text_place","text_placed","text_active","text_burn","text_hop","text_collect","text_old","text_reset","text_set"},
+    {"text_heavy","text_oneway","text_link","text_path","text_only","text_random","text_xnopyt"},
+    {},
+    {"text_text","text_all","text_group"}
+  }
+
+  editor_tabs.advanced = {
+    {"clipboard","text_clipboard","icon","text_icon","this","text_this","file","text_file"},
+    {"text_no","text_often","text_seldom","text_lonely","text_powered","text_power","text_yes"},
+    {"text_on","text_near","text_feeling","text_without","text_above","text_below","text_but","text_starts","text_contains","text_ends"},
+    {"text","text_text","group","text_group","level","text_level","text_place","text_placed","text_active"},
+    {"text_textof","choose","text_choose", "stack", "text_stack"}
+  }
+
+  editor_tabs.new = {
+    {"text_meta","text_this","text_icon","clock","text_clock",
+    "text_clipboard","text_what",
+    "grubble","text_grubble", "scribble", "text_scribble","hex","text_hex"},{"pentagon","text_pentagon","text_small","block","text_block","pa","text_pa","text_active","text_place","text_placed","text_goal","text_target","goal","target"},{"button","text_button","text_gellow", "text_burn"
+     , "text_only", "sj7ll", "text_sj7ll", "text_unmeta", "text_hop",
+    "blossom", "text_blossom", "calendar", "text_calendar", "card"}, {"text_card", "jar", "text_jar", "satelite", "text_satelite", "text_collect", "text_arc","arc","text_guy","guy",
+    "text_gburble","gburble","text_old", "text_no"},{"wug","text_wug","bell","text_bell",
+    "fan","text_fan","lim","text_lim",
+    "all", "text", "group",
+     "clipboard", "icon", "this"},{"text_uncopy","text_textof","text_but","mountain","text_mountain","correct","text_correct","horse","text_horse","battery","text_battery","staple","text_staple", "text_upsilon"},
+    {"incorrect", "text_incorrect","text_heavy","text_oneway","text_link","text_reset","text_set","text_big","text_random", "axe","text_axe","pick","text_pick","log"},{"text_log","text_starts","text_contains","text_ends",
+    "text_path","sqrt9","text_sqrt9", "text_file","mathdotsinxword","text_mathdotsinxword","text_dollars",
+    "3dollars","text_3dollars","text_ch"},{"lemon","text_lemon","prize","text_prize","text_xnopyt","jsdhgous","text_jsdhgous",
+    "cucucu","text_cucucu","wheel","text_wheel","file","choose","text_choose"},
+    {"abba","text_abba","text_none","text_yes","text_the", "stack", "text_stack"}
+  }
+
+  editor_tabs.basic = {
+    {"baaba", "text_baaba", "wall", "text_wall", "flag", "text_flag", "stone", "text_stone"},
+    {"whater", "text_whater", "lavaaa", "text_lavaaa", "key","text_key","door","text_door"},
+    {"box", "text_box", "grass", "text_grass", "belt", "text_belt", "skull", "text_skull"},
+    {"keeke", "text_keeke", "flower", "text_flower", "clock", "text_clock", "calendar", "text_calendar"},
+    {"brick", "text_brick", "pillar", "text_pillar", "tile", "text_tile", "tree", "text_tree"},
+    {"text_you", "text_win", "text_stop", "text_push", "text_sink", "text_hot", "text_melt", "text_defeat"},
+    {"text_pull", "text_shift", "text_float", "text_move", "text_red", "text_weak"},
+    {"text_is", "text_have", "text_n'", "text_on", "text_text"}
+  }
+
+  editor_tabs.all = images
+end
+
+
+function update_editor_tiling()
+  for i, j in ipairs(editor_curr_objects) do
+
+
+      j.tiling = nil
+        if getspritevalues(j.name).rotate == 5 then
+
+
+          local tileval = 0
+          local l = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}}
+          local mult = 1
+
+          for k, m in ipairs(l) do
+            for n, o in ipairs(alltilehere_editor(j.tilex + m[1], j.tiley + m[2])) do
+              if o.name == j.name or o.name == "level" then
+                tileval = tileval + mult
+                break
+              end
+            end
+            mult = mult * 2
+          end
+
+          j.tiling = tileval
+          j.sprite = love.graphics.newImage("sprite/" .. j.name .. " T" .. j.tiling .. ".png")
+
+        end
+
+  end
+end

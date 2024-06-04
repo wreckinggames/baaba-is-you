@@ -66,11 +66,12 @@ function objectswithverb(verb, p)
 return objs1
 end
 
-function getplayers()
+function getplayers(select_)
+  local deselect = select_ or false
  local objs1 = {}
  for i,ob in ipairs(rules) do
    local property = ob[3]
-    if property == "you" or property == "you2" and (ob[2] == "is")then
+    if property == "you" or property == "you2" or (property == "select" and not deselect) and (ob[2] == "is")then
       for j,job in ipairs(Objects) do
 
        if matches(ob[1], job) then
@@ -114,27 +115,41 @@ end
 function isruleblocked(id,verb,prop)
 
   local unit = Objects[id]
+  local norule = false
   for i,ob in ipairs(rules) do
     if ob[4] ~= nil then
       local hasno = false
       local non_no_conds = {}
+      local hasyes = false
       for j,k in ipairs(ob[4]) do
         if k[1] == "no" then
           hasno = true
-        elseif k[1] ~= "never" then
+        elseif k[1] ~= "never" and k[1] ~= "yes" then
           table.insert(non_no_conds, k)
+        elseif k[1] == "yes" then
+          hasyes = true
         end
       end
+
       if hasno then
         if matches(ob[3], prop, true) and (ob[2] == verb) and (matches(ob[1], unit)) then
           if testcond(non_no_conds, id) then
-            return true
+            norule = true
           end
         end
       end
+      if hasyes then
+        if matches(ob[3], prop, true) and (ob[2] == verb) and (matches(ob[1], unit)) then
+          if testcond(non_no_conds, id) then
+
+            return false
+          end
+        end
+      end
+
     end
   end
-  return false
+  return norule
 
 end
 function ruleexists(id, noun,verb,property, feeling,power)
@@ -285,11 +300,28 @@ function Parser:init()
   self.words = {}
   self.wordsToParse = {}
   self.parsed_rules = {}
+
+  local dels = {}
   for i, unit in ipairs(Objects) do
     if istext_or_word(unit.name,true) then
       unit._active = false
+      if not undoing then
+        local p = on(unit)
+        local thedel = false
+        for j, unit2 in ipairs(p) do
+          if istext_or_word(unit2.name,true) then
+            thedel = true
+            table.insert(dels, unit2)
+          end
+        end
+        if thedel then
+          table.insert(dels, unit)
+          makeobject(unit.tilex, unit.tiley, "stack", "right")
+        end
+      end
     end
   end
+  handledels(dels, false)
 end
 
 function Parser:makeFirstWords()
@@ -647,7 +679,7 @@ function Parser:ParseRules()
 
           for i, z in ipairs(accepted_args) do
 
-            if (next.type == z) and not (z == 5) then
+            if ((next.type == z) or (z == 0 and next.type == -5)) and not (z == 5) then
               success = true
               break
             elseif (next.type == 5) then
@@ -903,7 +935,7 @@ function Parser:AddRules()
         local valid = true
         if j[4] ~= nil then
           for m, cond in ipairs(j[4]) do
-            if cond[1] == "no" then
+            if cond[1] == "no" or cond[1] == "yes" then
 
               valid = false
               break

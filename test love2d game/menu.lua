@@ -90,7 +90,7 @@ function menu_load()
     y = 350,
     sizex = 60,
     sizey = 30,
-    func = notimplemented,
+    func = gotoplay,
     state = "main"
   })
 
@@ -115,6 +115,7 @@ function menu_load()
     func = backtomenu,
     state = "settings"
   })
+
 
   table.insert(menu_buttons, {
     color = {0.3, 0.3, 0.4, 0, 0, 0},
@@ -147,6 +148,28 @@ function menu_load()
     sizey = 30,
     func = gotomenu,
     state = "editor"
+  })
+
+  table.insert(menu_buttons, {
+    color = {0.2, 0.3, 0.7, 0, 0, 0},
+    text = "Back",
+    x = 1200,
+    y = 5,
+    sizex = 60,
+    sizey = 30,
+    func = gotomenuplay,
+    state = "play"
+  })
+
+  table.insert(menu_buttons, {
+    color = {0.2, 0.3, 0.7, 0, 0, 0},
+    text = "Back",
+    x = 1200,
+    y = 5,
+    sizex = 60,
+    sizey = 30,
+    func = gotomenuplay,
+    state = "playing"
   })
 
   table.insert(menu_buttons, {
@@ -199,20 +222,115 @@ function menu_load()
 end
 
 
+function addpopup(x, y, things, _sx, _sy)
+
+  table.insert(menu_buttons, {
+    color = {0.2, 0.2, 0.3, 1, 1, 1},
+    text = "",
+    x = x,
+    y = y,
+    sizex = _sx or 200,
+    sizey = _sy or 200,
+    state = gamestate,
+    id = "popup",
+    justtext = true,
+    popup = true
+  })
+
+  for _, stuff in ipairs(things) do
+    table.insert(menu_buttons, {
+      color = stuff.color or {0.2, 0.2, 0.3, 1, 1, 1},
+      text = stuff.text or "",
+      x = x + (stuff.dx or 0),
+      y = y + (stuff.dy or 0),
+      sizex = stuff.sizex or 200,
+      sizey = stuff.sizey or 200,
+      state = gamestate,
+      id = "popup",
+      func = stuff.func,
+      popup = true
+    })
+  end
+
+
+end
+
+
+
+
+
 function gotoeditor()
+  x_offset = 0
+  y_offset = 0
+
   playmusic("default")
   gamestate = "editor"
   menu_state = "editor"
 
+  palette_id = 1
+  loadPalette(all_palettes[palette_id])
+
   initui()
 end
 
+function gotogame()
+  gamestate = "playing"
+  menu_state = "playing"
+end
+
 function gotomenu()
+  leveltree = {}
   playmusic("baaba")
   gamestate = "menu"
   menu_state = "main"
   heldtile = ""
   editor_curr_objects = {}
+end
+
+function gotomenuplay()
+  leveltree = {}
+  delete_these_specific_menu_buttons()
+
+
+
+  levelname = ""
+
+
+  dielevel()
+  love.timer.sleep(0.1)
+
+
+  playmusic("baaba")
+  gamestate = "menu"
+  menu_state = "main"
+  editor_curr_objects = {}
+
+
+end
+
+function gotoplay()
+  menu_state = "play"
+
+  local filest = {}
+  local file_table = love.filesystem.getDirectoryItems("levels")
+  for i,v in ipairs(file_table) do
+    local file = "levels/"..v
+    local info = love.filesystem.getInfo(file)
+    if info then
+      if info.type == "file" then
+        table.insert(menu_buttons, {
+          color = {0.2, 0.3, 0.7, 0, 0, 0},
+          text = v,
+          x = 350 + 400 * ((i - 1) % 2),
+          y = 70 + 35 * math.floor((i - 1) / 2),
+          sizex = 160,
+          sizey = 30,
+          func = "auto_playlevel",
+          state = "play"
+        })
+      end
+    end
+  end
 end
 
 function backtomenu()
@@ -275,6 +393,40 @@ function windowbigger()
   end
 end
 
+-- NOTE: What am i even doing anymore
+function delete_these_specific_menu_buttons()
+
+  local removes = {}
+  for a, b in ipairs(menu_buttons) do
+    if b.func == "auto_playlevel" then
+      table.insert(removes, a)
+    end
+  end
+  local h = 0
+  for a, b in ipairs(removes) do
+    table.remove(menu_buttons, b - h)
+    h = h + 1
+  end
+
+end
+
+function loadlevel_advanced(j)
+  dolevelload()
+  loadlevel()
+end
+
+function playlevel_advanced(j)
+
+  gotogame()
+  love.timer.sleep(1)
+  levelname = j.text
+  full_level_load()
+  gotogame()
+  playmusic(musiclist[levelmusic])
+  delete_these_specific_menu_buttons()
+
+end
+
 function menu_press()
 
   local width, height = love.graphics.getDimensions()
@@ -285,15 +437,37 @@ function menu_press()
         local jx, jy = j.x * (width / 1280), j.y * (height / 820)
         local jsizex, jsizey = j.sizex * (width / 1280), j.sizey * (height / 820)
         if love.mouse.getX() > jx and love.mouse.getX() < jx + jsizex and  love.mouse.getY() > jy and love.mouse.getY() < jy + jsizey then
-          j.func()
+          if j.func ~= "auto_playlevel" then
+            j.func()
+          else
+            table.insert(leveltree, j.text)
+            gotogame()
+            love.timer.sleep(1)
+            levelname = j.text
+            dolevelload()
+            love.timer.sleep(1)
+            loadlevel()
+            gotogame()
+            playmusic(musiclist[levelmusic])
+            delete_these_specific_menu_buttons()
+
+            x_offset = (love.graphics.getWidth() - levelx * tilesize) / 2
+            y_offset = (love.graphics.getHeight() - (levely + 1) * tilesize) / 2
+            break
+
+          end
         end
       end
   end
 
 end
 
-
+curmusic = ""
 function playmusic(name)
+  if curmusic == name then
+    return
+  end
+  curmusic = name
   music:stop()
   music = love.audio.newSource("sound/" .. name .. ".wav","static")
   music:play()
