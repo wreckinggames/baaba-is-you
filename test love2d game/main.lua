@@ -13,6 +13,8 @@ local enabledebug = false
 
 
 function love.load()
+  love.filesystem.createDirectory("levels")
+  love.filesystem.createDirectory("progress")
   current_os = love.system.getOS()
   --love.audio.play(love.audio.newSource("sound/baaba.wav","static"))
   music = love.audio.newSource("sound/baaba.wav","static")
